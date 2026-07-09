@@ -7,6 +7,8 @@ const box = document.createElement("div");
 
 const overlay = document.querySelector(".overlay");
 
+const closeBtn = document.querySelector(".closeBtn");
+
 box.classList.add("box");
 
 
@@ -14,6 +16,7 @@ let time = 0;
 let interval;
 let score = 0;
 let timeout;
+let isClicked = false;
 
 const randomColor = () => {
     const r = Math.floor(Math.random() * 256)
@@ -39,6 +42,9 @@ const randomBox = () => {
     box.style.left = `${rx}px`
 
     box.style.backgroundColor = randomColor();
+
+    isClicked = false;
+    box.classList.remove("disabled");
 }
 
 
@@ -68,6 +74,21 @@ btn.addEventListener("click", () => {
 
 
 box.addEventListener("click", () => {
+    if (isClicked) return;
+    isClicked = true;
+    box.classList.add("disabled")
     score += 1;
     scoreBoard.textContent = score;
+
+})
+
+
+closeBtn.addEventListener("click", () => {
+    overlay.style.display = "none"
+    score = 0;
+    scoreBoard.textContent = score;
+    time = 0;
+    timer.textContent = time;
+    main.innerHTML = ""
+    clearInterval(interval);
 })

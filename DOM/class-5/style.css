@@ -61,13 +61,27 @@ button{
   height: 100%;
   background-color: rgba(0, 0, 0, 0.583);
   position: absolute;
-
   display: none;
   justify-content: center;
   align-items: center;
-  font-size: 50px;
+  font-size: 70px;
   text-transform: uppercase;
   user-select: none;
+  flex-direction: column;
+
+}
+
+.closeBtn{
+  color: red;
+  background-color: white;
+  padding: 10px 20px;
+  border-radius: 10px;
+  transition: cubic-bezier(0.19, 1, 0.22, 1) 0.3s;
+  cursor: pointer;
+
+  &:active{
+    transform: scale(0.80);
+  }
 }
 
 .top{
@@ -75,3 +89,15 @@ button{
   gap: 40px;
   padding: 10px;
 }
+
+.top p {
+  font-size: 25px;
+}
+
+.disabled {
+  pointer-events: none; /* blocks further clicks at browser level too */
+  opacity: 0;
+  cursor: not-allowed;
+}
+
+
