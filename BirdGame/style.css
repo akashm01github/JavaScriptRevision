@@ -15,14 +15,21 @@ body {
 }
 
 .game{
-    width: 80%;
-    height: 90%;
-    background-color: #80c4e2;
-    position: relative;
+  width: 80%;
+  height: 90%;
+  background-color: #4ED7F1;
+  position: relative;
+  overflow: hidden;
 }
 
-.birdPng{
-    height: 80px;
-    position: absolute;
-    object-fit: cover;
+.birdImage{
+  height: 50px;
+  object-fit: cover;
+  position: absolute;
+}
+
+.pipe{
+  width: 40px;
+  background-color: #1B5E20;
+  position: absolute;
 }
