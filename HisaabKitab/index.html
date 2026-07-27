@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HisaabKitab</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@4.9.0/fonts/remixicon.css" rel="stylesheet" />
+</head>
+
+<body>
+  <div class="loginContainer">
+    <form id="loginForm" action="">
+      <h1>Welcome Back</h1>
+      <p>Login to <b>HisaabKitab</b></p>
+      <input type="text" placeholder="Enter the username">
+      <input type="text" placeholder="Enter the password">
+      <button>LogIn</button>
+      <p>
+        Do Not Have Account? <a href="/register.html">Register</a>
+      </p>
+    </form>
+  </div>
+
+  <!-- ! MAIN DASHBOARD -->
+  <main>
+    <div id="sidebar">
+      <h1>HisaabKitab</h1>
+      <button id="addTransation">
+        <i class="ri-add-large-line"></i>
+        Add Transaction</button>
+    </div>
+    <div id="mainContent">
+      <div class="header">
+        <div></div>
+        <div class="info">
+          <h4 class="userCurrent">username</h4>
+          <button id="logoutBtn">Log Out</button>
+        </div>
+      </div>
+      <div class="body_content">
+        <div class="heading_content">
+          <div class="left_heading_content">
+            <h1>Financial Overview</h1>
+            <p>Real-time tracking application</p>
+          </div>
+
+          <button id="resetAllTranstion">Reset All Transaction</button>
+        </div>
+
+        <div class="resultContainer">
+          <div class="box_3">
+            <div class="bank">
+              <i class="ri-bank-line"></i>
+            </div>
+            <p>Current Balance</p>
+            <h1 id="currentBalance">$1000000000</h1>
+          </div>
+          <div class="box_4">
+            <div class="bank">
+              <i class="ri-cash-line"></i>
+            </div>
+            <p>Total Income</p>
+            <h1 id="totalIncome">$10000000000</h1>
+          </div>
+          <div class="box_5">
+            <div class="bank">
+              <i class="ri-hand-coin-line"></i>
+            </div>
+            <p>Total Expense</p>
+            <h1 id="totalExpence">$1000000000</h1>
+          </div>
+          <div class="box_6">
+            <div class="bank">
+              <i class="ri-swap-box-line"></i>
+            </div>
+            <p>Total Transactions</p>
+            <h1 id="totalTransactions">$0000000000</h1>
+          </div>
+        </div>
+
+
+      </div>
+    </div>
+
+
+
+
+    <div class="transaction_form">
+      <div class="formWrapper">
+        <h3>Add Transaction</h3>
+        <form id="cashFrom">
+          <i class="ri-close-large-line closeBtn"></i>
+          <label for="expenseType">Type</label>
+          <select name="type" id="expenseType">
+            <option value="expense">Expense</option>
+            <option value="income">Income</option>
+          </select>
+
+          <label for="desc">Descrption</label>
+          <input required type="text" placeholder="Descrption">
+
+          <div class="segrigate">
+            <div class="box_1">
+              <label for="date">Amount</label>
+              <input required type="number" placeholder="Amount">
+            </div>
+
+            <div class="box_2">
+              <label for="date">Date</label>
+              <input required type="date" name="" id="">
+            </div>
+          </div>
+
+          <label for="category">Category</label>
+          <select id="category" name="category">
+            <option value="" selected disabled>Select Category</option>
+            <option value="food_dining">Food & Dining</option>
+            <option value="shopping">Shopping</option>
+            <option value="recharge_bills">Recharge & Bills</option>
+            <option value="petrol_auto">Petrol & Auto</option>
+            <option value="utilities">Utilities</option>
+            <option value="salary">Salary</option>
+            <option value="entertainment">Entertainment</option>
+            <option value="other">Other</option>
+          </select>
+
+          <button class="createTransation">Submit</button>
+        </form>
+      </div>
+    </div>
+  </main>
+
+
+
+
+
+
+  <script src="script.js"></script>
+</body>
+
+</html>
