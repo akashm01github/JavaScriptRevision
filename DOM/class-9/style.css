@@ -1,0 +1,217 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+html,
+body {
+    width: 100%;
+    min-height: 100%;
+}
+
+body {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    background: linear-gradient(135deg, #eef2ff, #f8fafc);
+}
+
+/* Main Card */
+main {
+    width: min(700px, 100%);
+    min-height: 400px;
+    padding: 35px;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    flex-direction: column;
+    gap: 30px;
+
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid #e2e8f0;
+    border-radius: 20px;
+
+    box-shadow:
+        0 20px 50px rgba(15, 23, 42, 0.12),
+        0 5px 15px rgba(15, 23, 42, 0.05);
+}
+
+/* Input + Submit */
+.container {
+    width: 100%;
+    display: flex;
+    gap: 12px;
+}
+
+input {
+    flex: 1;
+    min-width: 0;
+
+    padding: 14px 16px;
+    outline: none;
+
+    font-size: 16px;
+    color: #1e293b;
+
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+
+    transition: 0.2s ease;
+}
+
+input::placeholder {
+    color: #94a3b8;
+}
+
+input:focus {
+    border-color: #6366f1;
+    background: #fff;
+
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+}
+
+/* Common button style */
+.btn,
+.editBtn,
+.dltBtn {
+    border: none;
+    border-radius: 9px;
+    color: white;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 600;
+
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease,
+        opacity 0.2s ease;
+}
+
+/* Submit */
+.btn {
+    padding: 0 22px;
+    background: #4f46e5;
+    box-shadow: 0 4px 10px rgba(79, 70, 229, 0.2);
+}
+
+.btn:hover {
+    background: #4338ca;
+    transform: translateY(-2px);
+    box-shadow: 0 7px 15px rgba(79, 70, 229, 0.25);
+}
+
+/* Task container */
+.taskContainer {
+    width: 100%;
+
+    display: flex;
+    justify-content: center;
+    align-items: stretch;
+    flex-direction: column;
+
+    gap: 12px;
+}
+
+/* Todo */
+.todos {
+    width: 100%;
+    min-height: 65px;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+
+    padding: 12px 15px;
+
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+
+    color: #1e293b;
+
+    transition: 0.2s ease;
+}
+
+.todos:hover {
+    background: #ffffff;
+    border-color: #cbd5e1;
+
+    transform: translateY(-2px);
+
+    box-shadow: 0 5px 15px rgba(15, 23, 42, 0.08);
+}
+
+/* Edit + Delete buttons */
+.castomBtn {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.editBtn,
+.dltBtn {
+    padding: 9px 13px;
+}
+
+.editBtn {
+    background: #4f46e5;
+}
+
+.editBtn:hover {
+    background: #4338ca;
+    transform: translateY(-1px);
+}
+
+.dltBtn {
+    background: #ef4444;
+}
+
+.dltBtn:hover {
+    background: #dc2626;
+    transform: translateY(-1px);
+}
+
+/* Mobile */
+@media (max-width: 600px) {
+    body {
+        padding: 12px;
+    }
+
+    main {
+        padding: 22px 16px;
+        border-radius: 16px;
+    }
+
+    .container {
+        flex-direction: column;
+    }
+
+    input {
+        width: 100%;
+    }
+
+    .btn {
+        width: 100%;
+        padding: 13px;
+    }
+
+    .todos {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .castomBtn {
+        width: 100%;
+    }
+
+    .editBtn,
+    .dltBtn {
+        flex: 1;
+    }
+}

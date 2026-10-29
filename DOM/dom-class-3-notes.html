@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DOM Notes — Class 2 &amp; 3</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400&family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F5F2EB; --paper-2:#EBE6DA; --paper-3:#FBF9F4;
+  --ink:#0E0F14; --ink-2:#1B1D26; --muted:#6B6A63; --line:#D9D3C3;
+  --accent:#C84B1F; --accent-soft:#F6DDD2;
+  --green:#2F7D4F; --green-soft:#DCEBDF;
+  --blue:#2B5FAE; --blue-soft:#DCE6F5;
+  --amber:#B8860B; --amber-soft:#F5E8C3;
+  --code-bg:#14161D; --code-ink:#E7E3D8;
+  --sidebar:260px;
+  --serif:'Fraunces',Georgia,serif; --sans:'DM Sans',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;scroll-padding-top:24px}
+body{background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16.5px;line-height:1.7;-webkit-font-smoothing:antialiased}
+code,pre,kbd{font-family:var(--mono)}
+p code,li code,td code,th code,.cap code{background:var(--paper-2);border:1px solid var(--line);padding:1px 6px;border-radius:4px;font-size:.86em;color:var(--accent)}
+
+/* ---------- Animations ---------- */
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+@keyframes dataFlow{0%{left:0;opacity:0}15%{opacity:1}85%{opacity:1}100%{left:calc(100% - 10px);opacity:0}}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(200,75,31,.45)}50%{box-shadow:0 0 0 8px rgba(200,75,31,0)}}
+.reveal{opacity:0;animation:fadeUp .7s ease forwards}
+.reveal.d1{animation-delay:.1s}.reveal.d2{animation-delay:.2s}.reveal.d3{animation-delay:.3s}
+
+/* ---------- Sidebar ---------- */
+.sidebar{position:fixed;inset:0 auto 0 0;width:var(--sidebar);background:var(--ink);color:#C9C5B8;padding:28px 0;overflow-y:auto;z-index:50;transition:transform .3s ease}
+.sidebar .brand{padding:0 26px 22px;border-bottom:1px solid #262833;margin-bottom:14px}
+.sidebar .brand small{display:block;font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
+.sidebar .brand b{font-family:var(--serif);font-weight:600;font-size:22px;color:#fff;line-height:1.2;display:block;margin-top:6px}
+.sidebar nav a{display:flex;gap:12px;align-items:baseline;padding:9px 26px;color:#A9A596;text-decoration:none;font-size:14px;border-left:3px solid transparent;transition:.2s}
+.sidebar nav a span{font-family:var(--mono);font-size:11.5px;color:#6A6C78}
+.sidebar nav a:hover{color:#fff;background:#171922}
+.sidebar nav a.active{color:#fff;border-left-color:var(--accent);background:#171922}
+.sidebar nav a.active span{color:var(--accent)}
+.menu-btn{display:none;position:fixed;top:12px;left:12px;z-index:60;background:var(--ink);color:#fff;border:0;border-radius:8px;width:42px;height:42px;font-size:20px;cursor:pointer}
+.scrim{display:none;position:fixed;inset:0;background:rgba(14,15,20,.5);z-index:40}
+
+/* ---------- Layout ---------- */
+main{margin-left:var(--sidebar);max-width:calc(var(--sidebar) + 980px);padding:0 56px 100px}
+.hero{padding:84px 0 48px;border-bottom:2px solid var(--ink);margin-bottom:12px}
+.hero .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent)}
+.hero h1{font-family:var(--serif);font-weight:800;font-size:clamp(40px,6vw,72px);line-height:1.02;letter-spacing:-.02em;margin:14px 0 18px}
+.hero h1 em{font-style:italic;font-weight:400;color:var(--accent)}
+.hero p.lead{font-size:19px;color:#3A3B44;max-width:640px}
+.hero .meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:24px}
+section{padding:64px 0 8px;border-bottom:1px solid var(--line)}
+.sec-head{display:flex;gap:18px;align-items:baseline;margin-bottom:22px}
+.sec-num{font-family:var(--mono);font-size:14px;color:var(--accent);font-weight:600;border:1.5px solid var(--accent);border-radius:6px;padding:2px 9px}
+h2{font-family:var(--serif);font-weight:600;font-size:clamp(28px,3.6vw,40px);line-height:1.15;letter-spacing:-.01em}
+h3{font-family:var(--serif);font-weight:600;font-size:22px;margin:34px 0 10px}
+p{margin:0 0 14px}
+ul.list{margin:0 0 16px 22px}ul.list li{margin-bottom:6px}
+.fade{opacity:0;transform:translateY(18px);transition:opacity .7s,transform .7s}
+.fade.in{opacity:1;transform:none}
+
+/* ---------- Badges ---------- */
+.badge{display:inline-block;font-family:var(--mono);font-size:11.5px;font-weight:500;padding:3px 10px;border-radius:999px;border:1px solid;letter-spacing:.03em;vertical-align:middle}
+.b-old{color:var(--amber);background:var(--amber-soft);border-color:#E6D08A}
+.b-new{color:var(--green);background:var(--green-soft);border-color:#B3D2BB}
+.b-warn{color:var(--accent);background:var(--accent-soft);border-color:#EDB9A6}
+.b-info{color:var(--blue);background:var(--blue-soft);border-color:#B5C8E8}
+.b-dark{color:#fff;background:var(--ink);border-color:var(--ink)}
+
+/* ---------- Callouts ---------- */
+.box{border-radius:10px;padding:18px 22px;margin:22px 0;border:1px solid;position:relative}
+.box .tag{display:block;font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;margin-bottom:6px}
+.box p:last-child{margin-bottom:0}
+.concept-box{background:var(--paper-3);border-color:var(--ink);border-left:6px solid var(--ink)}
+.concept-box .tag{color:var(--ink)}
+.note-box{background:var(--blue-soft);border-color:#B5C8E8;border-left:6px solid var(--blue)}
+.note-box .tag{color:var(--blue)}
+.warning-box{background:var(--accent-soft);border-color:#EDB9A6;border-left:6px solid var(--accent)}
+.warning-box .tag{color:var(--accent)}
+
+/* ---------- Code ---------- */
+.code-block{background:var(--code-bg);border-radius:10px;margin:18px 0;overflow:hidden;border:1px solid #23252F}
+.code-head{display:flex;justify-content:space-between;align-items:center;padding:8px 14px;background:#1B1E27;border-bottom:1px solid #262833}
+.code-head .lang{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#8C8A80}
+.copy-btn{font-family:var(--mono);font-size:11.5px;background:transparent;color:#C9C5B8;border:1px solid #3A3D4B;border-radius:6px;padding:3px 10px;cursor:pointer;transition:.2s}
+.copy-btn:hover{background:#262833;color:#fff}
+.copy-btn.done{color:#8FD4A5;border-color:#8FD4A5}
+pre{padding:16px 18px;overflow-x:auto;font-size:13.5px;line-height:1.65;color:var(--code-ink);tab-size:2}
+.tk-c{color:#7C7F8E;font-style:italic}.tk-s{color:#E9B872}.tk-k{color:#E2755A}.tk-n{color:#8FB9F0}.tk-f{color:#9ED3A9}
+
+/* ---------- Tables ---------- */
+.table-wrap{overflow-x:auto;margin:20px 0;border:1px solid var(--line);border-radius:10px;background:var(--paper-3)}
+table{width:100%;border-collapse:collapse;font-size:15px}
+th{background:var(--ink);color:#fff;text-align:left;font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;padding:11px 16px;font-weight:500}
+td{padding:11px 16px;border-top:1px solid var(--line);vertical-align:top}
+tr:hover td{background:#F2EEE3}
+.yes{color:var(--green);font-weight:700}.no{color:var(--accent);font-weight:700}
+
+/* ---------- Flow diagram ---------- */
+.flow{display:flex;align-items:center;gap:0;flex-wrap:wrap;margin:24px 0;padding:22px;background:var(--paper-3);border:1px solid var(--line);border-radius:12px}
+.flow .node{background:var(--ink);color:#fff;border-radius:8px;padding:10px 16px;font-family:var(--mono);font-size:13px;text-align:center;min-width:120px}
+.flow .node small{display:block;color:#A9A596;font-size:11px;margin-top:2px}
+.flow .node.hot{background:var(--accent)}
+.flow .node.hot small{color:#FBE3D8}
+.flow .node.soft{background:var(--paper-2);color:var(--ink);border:1px dashed var(--muted)}
+.flow .node.soft small{color:var(--muted)}
+.flow .link{flex:1;min-width:60px;height:2px;background:var(--line);position:relative;margin:0 4px}
+.flow .link::after{content:"";position:absolute;top:-4px;left:0;width:10px;height:10px;border-radius:50%;background:var(--accent);animation:dataFlow 2s linear infinite}
+.flow .link.slow::after{animation-duration:3.2s}
+.flow .link span{position:absolute;top:-22px;left:50%;transform:translateX(-50%);font-family:var(--mono);font-size:10.5px;color:var(--muted);white-space:nowrap}
+
+/* ---------- Stepper ---------- */
+.stepper{background:var(--paper-3);border:1px solid var(--ink);border-radius:12px;margin:26px 0;overflow:hidden}
+.stepper .st-top{display:flex;justify-content:space-between;align-items:center;padding:10px 16px;background:var(--ink);color:#fff;font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+.stepper svg{display:block;width:100%;height:auto;background:var(--paper-3)}
+.stepper svg [data-show]{opacity:0;transition:opacity .4s}
+.stepper svg [data-show].on{opacity:1}
+.stepper svg text{font-family:var(--mono);font-size:13px;fill:var(--ink)}
+.stepper svg .lbl{font-size:11px;fill:var(--muted);letter-spacing:.08em}
+.stepper svg .box-s{fill:#fff;stroke:var(--ink);stroke-width:1.5}
+.stepper svg .box-d{fill:var(--paper-2);stroke:var(--muted);stroke-width:1.5;stroke-dasharray:5 4}
+.stepper svg .hl{fill:var(--accent-soft);stroke:var(--accent);stroke-width:2}
+.stepper svg .gr{fill:var(--green-soft);stroke:var(--green);stroke-width:2}
+.stepper svg .li{fill:var(--blue-soft);stroke:var(--blue);stroke-width:1.5}
+.stepper svg .arr{stroke:var(--accent);stroke-width:2.5;fill:none;marker-end:url(#ah)}
+.stepper svg .mk{fill:var(--accent)}
+.stepper svg .acc{fill:var(--accent);font-weight:600}
+.cap{padding:14px 18px;border-top:1px solid var(--line);min-height:76px;font-size:15px}
+.cap div{display:none}.cap div.on{display:block;animation:fadeUp .4s ease}
+.st-ctrl{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-top:1px solid var(--line);background:var(--paper-2)}
+.st-ctrl button{font-family:var(--mono);font-size:13px;background:var(--ink);color:#fff;border:0;border-radius:6px;padding:7px 16px;cursor:pointer;transition:.2s}
+.st-ctrl button:hover:not(:disabled){background:var(--accent)}
+.st-ctrl button:disabled{opacity:.35;cursor:not-allowed}
+.dots{display:flex;gap:6px}.dots i{width:9px;height:9px;border-radius:50%;background:var(--line);transition:.3s}.dots i.on{background:var(--accent);transform:scale(1.25)}
+
+/* ---------- Live demo ---------- */
+.demo{background:var(--paper-3);border:1.5px dashed var(--ink);border-radius:12px;padding:20px;margin:24px 0}
+.demo h4{font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:12px}
+.demo input[type=text]{font:inherit;padding:8px 12px;border:1.5px solid var(--ink);border-radius:6px;background:#fff;width:100%;max-width:260px}
+.btn{font-family:var(--mono);font-size:12.5px;background:var(--ink);color:#fff;border:0;border-radius:6px;padding:8px 14px;cursor:pointer;margin:4px 6px 4px 0;transition:.2s}
+.btn:hover{background:var(--accent)}
+.btn.alt{background:transparent;color:var(--ink);border:1.5px solid var(--ink)}
+.btn.alt:hover{background:var(--ink);color:#fff}
+.out{background:var(--code-bg);color:var(--code-ink);font-family:var(--mono);font-size:13px;border-radius:8px;padding:12px 14px;margin-top:12px;white-space:pre-wrap;min-height:44px}
+.theme-box{padding:20px;border-radius:10px;border:2px solid var(--ink);background:#fff;color:var(--ink);transition:.3s;margin-bottom:10px}
+.theme-box.dark-mode{background:var(--ink);color:#F5F2EB;border-color:var(--accent)}
+.live-list{list-style:none;margin:12px 0;padding:0;border:1px solid var(--line);border-radius:8px;background:#fff;min-height:40px}
+.live-list li{padding:8px 14px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;font-size:14.5px;animation:fadeUp .35s ease}
+.live-list li:last-child{border-bottom:0}
+.live-list li button{background:none;border:0;color:var(--accent);cursor:pointer;font-family:var(--mono);font-size:12px}
+.live-list li.fresh{background:var(--accent-soft)}
+
+/* ---------- Quiz ---------- */
+.quiz{background:var(--paper-3);border:1px solid var(--line);border-radius:12px;padding:20px 22px;margin:18px 0}
+.quiz .q{font-family:var(--serif);font-weight:600;font-size:18px;margin-bottom:12px}
+.quiz .q small{font-family:var(--mono);color:var(--accent);font-size:12px;margin-right:8px}
+.opt{display:block;width:100%;text-align:left;font:inherit;font-size:15px;background:#fff;border:1.5px solid var(--line);border-radius:8px;padding:10px 14px;margin-bottom:8px;cursor:pointer;transition:.2s}
+.opt:hover:not(:disabled){border-color:var(--ink)}
+.opt.right{background:var(--green-soft);border-color:var(--green)}
+.opt.wrong{background:var(--accent-soft);border-color:var(--accent)}
+.opt:disabled{cursor:default}
+.explain{display:none;margin-top:6px;padding:10px 14px;border-radius:8px;background:var(--paper-2);font-size:14.5px}
+.explain.show{display:block;animation:fadeUp .35s ease}
+.score{font-family:var(--mono);font-size:13px;margin-top:10px;color:var(--muted)}
+
+footer{padding:40px 0 0;font-family:var(--mono);font-size:12px;color:var(--muted);text-align:center}
+
+/* ---------- Responsive ---------- */
+@media(max-width:960px){
+  .sidebar{transform:translateX(-100%)}
+  .sidebar.open{transform:none}
+  .scrim.show{display:block}
+  .menu-btn{display:block}
+  main{margin-left:0;padding:0 20px 80px}
+  .hero{padding-top:76px}
+}
+@media(max-width:560px){
+  body{font-size:15.5px}
+  .flow{flex-direction:column;align-items:stretch}
+  .flow .link{width:2px;height:40px;min-width:0;flex:none;margin:8px auto}
+  .flow .link::after{animation:none;left:-4px;top:15px}
+  .flow .link span{display:none}
+  pre{font-size:12.5px}
+}
+</style>
+</head>
+<body>
+
+<button class="menu-btn" id="menuBtn" aria-label="Toggle navigation">☰</button>
+<div class="scrim" id="scrim"></div>
+
+<aside class="sidebar" id="sidebar">
+  <div class="brand"><small>JavaScript · DOM</small><b>DOM Notes<br>Class 2 &amp; 3</b></div>
+  <nav id="nav"></nav>
+</aside>
+
+<main>
+  <header class="hero">
+    <div class="eyebrow reveal">Class 2 → Class 3 · Browser DOM</div>
+    <h1 class="reveal d1">Attributes, Properties &amp; <em>Building Nodes</em></h1>
+    <p class="lead reveal d2">How HTML markup differs from the live DOM object, and how to create, insert and remove nodes. This is exactly what React does under the hood on every render.</p>
+    <div class="meta reveal d3">
+      <span class="badge b-dark">Class 2</span><span class="badge b-dark">Class 3</span>
+      <span class="badge b-old">Old API</span><span class="badge b-new">Modern API</span><span class="badge b-warn">XSS Safety</span>
+    </div>
+  </header>
+
+  <!-- 01 -->
+  <section data-title="Attribute vs Property" class="fade">
+    <div class="sec-head"><span class="sec-num"></span><h2>Attribute vs Property</h2></div>
+    <div class="concept-box box"><span class="tag">Core concept</span>
+      <p><b>Attribute</b> lives in the HTML markup. It is the <i>initial value</i> written in your HTML file.</p>
+      <p><b>Property</b> lives on the DOM JavaScript object. It reflects the <i>live, current state</i> of the element in memory.</p>
+    </div>
+    <p>They start equal but <b>diverge</b> the moment the user interacts with the page.</p>
+    <div class="note-box box"><span class="tag">Mental model</span><p>Think of the attribute as a snapshot from when the page loaded. The property is the live feed of what is happening right now.</p></div>
+
+    <div class="flow">
+      <div class="node">HTML markup<small>value="Alice"</small></div>
+      <div class="link"><span>parse</span></div>
+      <div class="node hot">DOM object<small>input.value</small></div>
+      <div class="link slow"><span>user types</span></div>
+      <div class="node soft">Live state<small>"Bob"</small></div>
+    </div>
+
+    <div class="code-block"><div class="code-head"><span class="lang">javascript</span><button class="copy-btn">Copy</button></div>
+<pre><code class="hl-js">// HTML: &lt;input id="name" value="Alice" class="form-input"&gt;
+
+const input = document.getElementById("name");
+
+// --- ATTRIBUTE (from HTML) ---
+input.getAttribute("value");   // "Alice" — initial HTML value
+input.getAttribute("class");   // "form-input" — raw string
+
+// --- PROPERTY (live DOM state) ---
+input.value;                   // "Alice" — same at first
+input.className;               // "form-input" — same at first
+
+// User types "Bob" in the input field. Now:
+input.getAttribute("value");   // still "Alice" (HTML didn't change)
+input.value;                   // "Bob"  (live DOM property updated!)</code></pre></div>
+
+    <div class="warning-box box"><span class="tag">Warning</span><p><code>getAttribute("value")</code> = <b>initial state</b>. <code>input.value</code> = <b>current state</b>. Never confuse them.</p></div>
+
+    <!-- Stepper 1 -->
+    <div class="stepper" data-steps="4">
+      <div class="st-top"><span>Stepper · Attribute vs Property</span><span class="counter">Step 1 / 4</span></div>
+      <svg viewBox="0 0 640 230" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Attribute versus property divergence">
+        <defs><marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#C84B1F"/></marker></defs>
+        <text class="lbl" x="40" y="30">HTML ATTRIBUTE</text>
+        <rect class="box-s" x="40" y="42" width="220" height="80" rx="8"/>
+        <text x="58" y="76">value="Alice"</text>
+        <text class="lbl" x="58" y="104">static · set by markup</text>
+        <text class="lbl" x="380" y="30">DOM PROPERTY</text>
+        <rect class="box-s" x="380" y="42" width="220" height="80" rx="8"/>
+        <text x="398" y="76" data-show="1">input.value = "Alice"</text>
+        <g data-show="2,3,4"><rect class="hl" x="380" y="42" width="220" height="80" rx="8"/><text x="398" y="76">input.value = "Bob"</text></g>
+        <text class="lbl" x="398" y="104">live · updates in memory</text>
+        <g data-show="2"><rect class="gr" x="250" y="150" width="140" height="38" rx="8"/><text x="268" y="174">user types…</text></g>
+        <g data-show="3"><path class="arr" d="M150 128 L150 190"/><rect class="box-s" x="40" y="192" width="230" height="30" rx="6"/><text x="52" y="212">getAttribute("value")</text><text class="acc" x="290" y="212">→ "Alice"</text></g>
+        <g data-show="4"><path class="arr" d="M490 128 L490 190"/><rect class="box-s" x="380" y="192" width="150" height="30" rx="6"/><text x="392" y="212">input.value</text><text class="acc" x="544" y="212">→ "Bob"</text></g>
+      </svg>
+      <div class="cap">
+        <div class="on">The page loads. The attribute and the property both start as <code>"Alice"</code>.</div>
+        <div>The user types "Bob". Only the <b>property</b> changes. The HTML attribute is untouched.</div>
+        <div><code>getAttribute("value")</code> still returns the original <code>"Alice"</code>: the initial snapshot.</div>
+        <div><code>input.value</code> returns <code>"Bob"</code>: the live current state.</div>
+      </div>
+      <div class="st-ctrl"><button class="back">← Back</button><div class="dots"></div><button class="fwd">Forward →</button></div>
+    </div>
+
+    <div class="demo"><h4>Try it · live input</h4>
+      <input type="text" id="demoInput" value="Alice" aria-label="Demo input">
+      <div style="margin-top:8px"><button class="btn" id="btnAttr">getAttribute("value")</button><button class="btn alt" id="btnProp">input.value</button></div>
+      <div class="out" id="demoOut">Type something above, then click a button.</div>
+    </div>
+  </section>
+
+  <!-- 02 -->
+  <section data-title="setAttribute / removeAttribute" class="fade">
+    <div class="sec-head"><span class="sec-num"></span><h2>setAttribute, removeAttribute &amp; hasAttribute</h2></div>
+    <p>These three methods let you <b>read, write and remove attributes</b> directly on the HTML element. They operate on the attribute (the HTML string), not the DOM property.</p>
+    <div class="table-wrap"><table>
+      <tr><th>Method</th><th>What it does</th></tr>
+      <tr><td><code>setAttribute(name, value)</code></td><td>Sets or updates an attribute</td></tr>
+      <tr><td><code>removeAttribute(name)</code></td><td>Removes the attribute entirely</td></tr>
+      <tr><td><code>hasAttribute(name)</code></td><td>Returns <code>true</code> or <code>false</code></td></tr>
+    </table></div>
+    <div class="code-block"><div class="code-head"><span class="lang">javascript</span><button class="copy-btn">Copy</button></div>
+<pre><code class="hl-js">const btn = document.querySelector("button");
+
+// setAttribute — sets/updates an attribute
+btn.setAttribute("disabled", "");          // disables the button
+btn.setAttribute("aria-label", "Submit");  // sets accessibility label
+btn.setAttribute("data-id", "42");         // sets a custom data attribute
+
+// removeAttribute — removes the attribute entirely
+btn.removeAttribute("disabled");           // re-enables the button
+
+// hasAttribute — returns true/false
+btn.hasAttribute("disabled");   // false (we just removed it)
+btn.hasAttribute("aria-label"); // true
+
+// Practical: toggle disabled based on a condition
+if (inputIsEmpty) {
+  btn.setAttribute("disabled", "");
+} else {
+  btn.removeAttribute("disabled");
+}</code></pre></div>
+    <div class="note-box box"><span class="tag">Boolean attributes</span><p>For boolean attributes like <code>disabled</code>, <code>checked</code> and <code>readonly</code>, their <b>presence</b> means true and their absence means false. The value does not matter; just use <code>""</code> when setting.</p></div>
+  </section>
+
+  <!-- 03 -->
+  <section data-title="data-* &amp; dataset" class="fade">
+    <div class="sec-head"><span class="sec-num"></span><h2>data-* Attributes and the dataset API</h2></div>
+    <p>Any attribute starting with <code>data-</code> is a <b>custom data attribute</b>. It lets you embed extra metadata in HTML elements without misusing standard attributes. All of them are accessible through <code>element.dataset</code>, a <code>DOMStringMap</code> object.</p>
+    <div class="concept-box box"><span class="tag">Key rule</span><p>Kebab-case in HTML automatically becomes camelCase in JavaScript.</p></div>
+    <div class="table-wrap"><table>
+      <tr><th>HTML attribute</th><th>JavaScript</th></tr>
+      <tr><td><code>data-user-id</code></td><td><code>dataset.userId</code></td></tr>
+      <tr><td><code>data-is-admin</code></td><td><code>dataset.isAdmin</code></td></tr>
+      <tr><td><code>data-bg-color</code></td><td><code>dataset.bgColor</code></td></tr>
+    </table></div>
+    <div class="code-block"><div class="code-head"><span class="lang">javascript</span><button class="copy-btn">Copy</button></div>
+<pre><code class="hl-js">// HTML: &lt;div id="card" data-user-id="7" data-role="admin" data-active="true"&gt;
+
+const card = document.getElementById("card");
+
+// Reading via dataset (auto camelCase conversion)
+card.dataset.userId;    // "7"     (data-user-id → dataset.userId)
+card.dataset.role;      // "admin"
+card.dataset.active;    // "true"  (always a string!)
+
+// Writing via dataset
+card.dataset.userId = "99";        // updates data-user-id="99" in HTML
+card.dataset.theme  = "dark";      // adds data-theme="dark" to HTML
+
+// Deleting a data attribute
+delete card.dataset.active;        // removes data-active from HTML
+
+// Also readable with getAttribute (raw attribute string)
+card.getAttribute("data-user-id"); // "99" — same result, different API</code></pre></div>
+    <div class="warning-box box"><span class="tag">Warning</span><p><code>dataset</code> values are <b>always strings</b>. Parse with <code>Number()</code> or <code>JSON.parse()</code> when you need a real type.</p></div>
+  </section>
+
+  <!-- 04 -->
+  <section data-title="class vs className vs classList" class="fade">
+    <div class="sec-head"><span class="sec-num"></span><h2>getAttribute("class") vs className vs classList</h2></div>
+    <p>These three look similar but they are <b>not the same</b>.</p>
+    <div class="table-wrap"><table>
+      <tr><th>Method</th><th>Returns</th><th>When to use</th></tr>
+      <tr><td><code>getAttribute("class")</code></td><td>Raw HTML string, may be <code>null</code></td><td>Reading the original HTML attribute</td></tr>
+      <tr><td><code>element.className</code></td><td>Live string, never <code>null</code></td><td>Replacing all classes at once</td></tr>
+      <tr><td><code>element.classList</code></td><td><code>DOMTokenList</code> (array-like)</td><td>Adding / removing / toggling individual classes <span class="yes">✓</span></td></tr>
+    </table></div>
+    <div class="code-block"><div class="code-head"><span class="lang">javascript</span><button class="copy-btn">Copy</button></div>
+<pre><code class="hl-js">const el = document.querySelector(".card");
+
+// classList — the preferred modern API
+el.classList.add("active");            // adds a class
+el.classList.remove("hidden");         // removes a class
+el.classList.toggle("dark");           // adds if absent, removes if present
+el.classList.contains("active");       // true / false
+el.classList.replace("old", "new");    // swap one class for another
+
+// className — replaces ALL classes at once (destructive)
+el.className = "card active";          // replaces everything
+
+// getAttribute — raw string from HTML
+el.getAttribute("class");              // "card active"</code></pre></div>
+    <div class="note-box box"><span class="tag">Rule of thumb</span><p><b>Always use <code>classList</code></b> for individual class changes. <code>className</code> wipes all existing classes, so use it only when you want to set everything from scratch.</p></div>
+  </section>
+
+  <!-- 05 -->
+  <section data-title="Live Demo: Theme Toggle" class="fade">
+    <div class="sec-head"><span class="sec-num"></span><h2>Live Demo: Theme Toggle</h2></div>
+    <p>This combines <code>dataset</code> (state) and <code>classList.toggle</code> (appearance).</p>
+    <div class="code-block"><div class="code-head"><span class="lang">javascript</span><button class="copy-btn">Copy</button></div>
+<pre><code class="hl-js">function toggleTheme() {
+  const box = document.getElementById("themeBox");
+  const isDark = box.dataset.theme === "dark";
+
+  // Update the data-* attribute
+  box.dataset.theme = isDark ? "light" : "dark";
+
+  // Toggle a CSS class
+  box.classList.toggle("dark-mode", !isDark);
+}
+
+// Reading both ways — they return the same value
+box.dataset.theme;                 // "dark"
+box.getAttribute("data-theme");    // "dark"</code></pre></div>
+    <div class="demo"><h4>Try it · theme box</h4>
+      <div class="theme-box" id="themeBox" data-theme="light"><b>Theme box</b><br>I change with <code style="color:inherit">data-theme</code> and a CSS class.</div>
+      <button class="btn" id="themeBtn">toggleTheme()</button>
+      <div class="out" id="themeOut"></div>
+    </div>
+  </section>
+
+  <!-- 06 -->
+  <section data-title="Creating Nodes" class="fade">
+    <div class="sec-head"><span class="sec-num"></span><h2>Creating Nodes</h2></div>
+    <div class="note-box box"><span class="tag">Class 3 · Category A</span><p>This is what React does under the hood, on every render.</p></div>
+
+    <h3>document.createElement(tag)</h3>
+    <p>Creates a brand-new HTML element <b>in memory</b>. It does not appear on the page until you insert it somewhere.</p>
+    <div class="code-block"><div class="code-head"><span class="lang">javascript</span><button class="copy-btn">Copy</button></div>
+<pre><code class="hl-js">const div  = document.createElement("div");
+const btn  = document.createElement("button");
+const img  = document.createElement("img");
+const para = document.createElement("p");
+
+// Set properties before inserting
+btn.textContent = "Click me";
+btn.setAttribute("type", "button");
+img.src = "photo.png";
+img.alt = "A photo";
+
+// Element still not visible — needs to be inserted into the DOM
+document.body.appendChild(btn);  // now it appears on the page</code></pre></div>
+    <div class="note-box box"><span class="tag">Tip</span><p>Always configure your element (text, classes, attributes) <b>before</b> inserting it. This avoids multiple reflows.</p></div>
+
+    <h3>document.createTextNode(text)</h3>
+    <p>Creates a <b>raw text node</b>: pure text with no wrapping tag. Use it to add text programmatically without <code>innerHTML</code>, which is a security risk with user-generated input.</p>
+    <div class="code-block"><div class="code-head"><span class="lang">javascript</span><button class="copy-btn">Copy</button></div>
+<pre><code class="hl-js">const text = document.createTextNode("Hello, World!");
+
+// Typically appended inside an element
+const p = document.createElement("p");
+p.appendChild(text);   // &lt;p&gt;Hello, World!&lt;/p&gt;
+
+// vs innerHTML (avoid with user input — XSS risk!)
+p.innerHTML = userInput;    // dangerous if userInput has a script
+p.textContent = userInput;  // safe — always treated as plain text</code></pre></div>
+    <div class="warning-box box"><span class="tag">XSS warning</span><p><b>Never use <code>innerHTML</code> with user-generated content.</b> Use <code>textContent</code> or <code>createTextNode</code>. They treat everything as plain text and prevent Cross-Site Scripting attacks.</p></div>
+
+    <h3>document.createDocumentFragment()</h3>
+    <p>A <code>DocumentFragment</code> is a lightweight, <b>in-memory container</b> that is not part of the live DOM tree. Build many elements inside it, then insert the whole fragment in <b>one operation</b>, triggering one reflow instead of many. Virtual-DOM libraries rely on this idea.</p>
+    <div class="code-block"><div class="code-head"><span class="lang">javascript</span><button class="copy-btn">Copy</button></div>
+<pre><code class="hl-js">// Without fragment — 1000 separate DOM insertions = 1000 reflows
+const ul = document.getElementById("list");
+for (let i = 0; i &lt; 1000; i++) {
+  const li = document.createElement("li");
+  li.textContent = `Item ${i}`;
+  ul.appendChild(li); // each call triggers layout recalculation!
+}
+
+// With fragment — only 1 reflow at the end
+const fragment = document.createDocumentFragment();
+for (let i = 0; i &lt; 1000; i++) {
+  const li = document.createElement("li");
+  li.textContent = `Item ${i}`;
+  fragment.appendChild(li); // no DOM, no reflow yet
+}
+ul.appendChild(fragment); // ONE insertion → one reflow. Fast!</code></pre></div>
+
+    <div class="table-wrap"><table>
+      <tr><th>Approach</th><th>DOM insertions</th><th>Reflows</th><th>Verdict</th></tr>
+      <tr><td>Append in a loop</td><td>1000</td><td>Up to 1000</td><td><span class="no">Slow</span></td></tr>
+      <tr><td>DocumentFragment</td><td>1</td><td>1</td><td><span class="yes">Fast</span></td></tr>
+    </table></div>
+
+    <!-- Stepper 2 -->
+    <div class="stepper" data-steps="4">
+      <div class="st-top"><span>Stepper · DocumentFragment</span><span class="counter">Step 1 / 4</span></div>
+      <svg viewBox="0 0 640 250" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="DocumentFragment insertion">
+        <text class="lbl" x="40" y="28">DOCUMENT FRAGMENT (IN MEMORY)</text>
+        <rect class="box-d" x="40" y="40" width="220" height="150" rx="10"/>
+        <text class="lbl" x="130" y="120" data-show="1,4">empty</text>
+        <g data-show="2"><rect class="li" x="60" y="56" width="180" height="32" rx="6"/><text x="76" y="77">&lt;li&gt; Item 0</text><rect class="li" x="60" y="98" width="180" height="32" rx="6"/><text x="76" y="119">&lt;li&gt; Item 1</text><rect class="li" x="60" y="140" width="180" height="32" rx="6"/><text x="76" y="161">&lt;li&gt; Item 2</text></g>
+        <text class="lbl" x="380" y="28">LIVE DOM · &lt;ul id="list"&gt;</text>
+        <rect class="box-s" x="380" y="40" width="220" height="150" rx="10"/>
+        <text class="lbl" x="440" y="120" data-show="1,2">no children yet</text>
+        <g data-show="3,4"><rect class="gr" x="400" y="56" width="180" height="32" rx="6"/><text x="416" y="77">&lt;li&gt; Item 0</text><rect class="gr" x="400" y="98" width="180" height="32" rx="6"/><text x="416" y="119">&lt;li&gt; Item 1</text><rect class="gr" x="400" y="140" width="180" height="32" rx="6"/><text x="416" y="161">&lt;li&gt; Item 2</text></g>
+        <g data-show="3"><path class="arr" d="M270 115 L370 115"/><text class="acc" x="268" y="100">appendChild(fragment)</text></g>
+        <g data-show="4"><rect class="hl" x="380" y="204" width="220" height="34" rx="8"/><text class="acc" x="400" y="226">1 insertion = 1 reflow</text></g>
+      </svg>
+      <div class="cap">
+        <div class="on">The fragment is created. It lives only in memory, outside the page.</div>
+        <div>Elements are built and added to the fragment. <b>No layout work</b> happens because none of it is in the live DOM.</div>
+        <div><code>ul.appendChild(fragment)</code> moves all children into the real DOM in a single operation.</div>
+        <div>The fragment is now empty. Its children <b>moved</b>. The browser performed only <b>one reflow</b>.</div>
+      </div>
+      <div class="st-ctrl"><button class="back">← Back</button><div class="dots"></div><button class="fwd">Forward →</button></div>
+    </div>
+    <div class="note-box box"><span class="tag">Remember</span><p>After insertion, the <code>DocumentFragment</code> becomes empty. Its children <b>move</b> into the real DOM and the fragment itself disappears.</p></div>
+  </section>
+
+  <!-- 07 -->
+  <section data-title="Inserting &amp; Removing (Old API)" class="fade">
+    <div class="sec-head"><span class="sec-num"></span><h2>Inserting &amp; Removing <span class="badge b-old">Old API</span></h2></div>
+    <div class="note-box box"><span class="tag">Class 3 · Category B</span><p>The old API is everywhere in legacy codebases. Know it well.</p></div>
+
+    <h3>appendChild(): add a child at the end</h3>
+    <p><code>parent.appendChild(node)</code> inserts a node as the <b>last child</b>. If the node already exists elsewhere in the DOM, it is <b>moved</b>, not copied.</p>
+    <div class="code-block"><div class="code-head"><span class="lang">javascript</span><button class="copy-btn">Copy</button></div>
+<pre><code class="hl-js">const ul = document.querySelector("ul");
+const li = document.createElement("li");
+li.textContent = "New Item";
+
+ul.appendChild(li);
+// &lt;ul&gt;...existing items...&lt;li&gt;New Item&lt;/li&gt;&lt;/ul&gt;
+
+// Moving an existing node
+const existing = document.getElementById("someItem");
+ul.appendChild(existing); // moves it to the end, doesn't duplicate</code></pre></div>
+
+    <h3>insertBefore(): insert before a specific child</h3>
+    <p><code>parent.insertBefore(newNode, referenceNode)</code> inserts <b>before</b> the reference node, which must be a direct child of the parent. If <code>referenceNode</code> is <code>null</code>, it behaves like <code>appendChild</code>.</p>
+    <div class="code-block"><div class="code-head"><span class="lang">javascript</span><button class="copy-btn">Copy</button></div>
+<pre><code class="hl-js">const list = document.querySelector("ul");
+const newLi = document.createElement("li");
+newLi.textContent = "First!";
+
+const firstExisting = list.firstElementChild; // first &lt;li&gt;
+list.insertBefore(newLi, firstExisting);
+// &lt;ul&gt;&lt;li&gt;First!&lt;/li&gt; ...rest...&lt;/ul&gt;
+
+// Insert at end (null reference)
+list.insertBefore(newLi, null); // same as appendChild</code></pre></div>
+
+    <h3>removeChild(): remove a child node</h3>
+    <p><code>parent.removeChild(child)</code> removes a <b>direct child</b>. You need a reference to the parent. The removed node is returned, so you can save and re-insert it later.</p>
+    <div class="code-block"><div class="code-head"><span class="lang">javascript</span><button class="copy-btn">Copy</button></div>
+<pre><code class="hl-js">const list = document.querySelector("ul");
+const item = document.querySelector("li.unwanted");
+
+// Must call on the parent!
+list.removeChild(item); // removes it, returns the removed node
+
+// Common pattern: self-removal via parentNode
+item.parentNode.removeChild(item); // works without explicitly knowing the parent</code></pre></div>
+  </section>
+
+  <!-- 08 -->
+  <section data-title="Modern Insert &amp; Remove API" class="fade">
+    <div class="sec-head"><span class="sec-num"></span><h2>Modern Insert &amp; Remove <span class="badge b-new">Modern API</span></h2></div>
+
+    <h3>append(): multiple nodes and strings</h3>
+    <p><code>parent.append(...nodes)</code> upgrades <code>appendChild</code>. It accepts <b>multiple arguments</b> and mixes DOM nodes with plain strings. It returns <code>undefined</code>, whereas <code>appendChild</code> returns the inserted node.</p>
+    <div class="code-block"><div class="code-head"><span class="lang">javascript</span><button class="copy-btn">Copy</button></div>
+<pre><code class="hl-js">const div = document.querySelector("div");
+const span = document.createElement("span");
+span.textContent = "World";
+
+// Accepts nodes AND raw strings in one call
+div.append("Hello ", span, "!");
+// &lt;div&gt;Hello &lt;span&gt;World&lt;/span&gt;!&lt;/div&gt;
+
+// appendChild would need 3 separate calls for the same result:
+// div.appendChild(document.createTextNode("Hello "));
+// div.appendChild(span);
+// div.appendChild(document.createTextNode("!"));</code></pre></div>
+
+    <h3>prepend() / before() / after() / replaceWith()</h3>
+    <ul class="list">
+      <li><code>parent.prepend(node)</code> inserts <b>inside</b> the parent as the <b>first child</b></li>
+      <li><code>element.before(node)</code> inserts <b>outside</b>, as a sibling <b>before</b> the element</li>
+      <li><code>element.after(node)</code> inserts <b>outside</b>, as a sibling <b>after</b> the element</li>
+      <li><code>element.replaceWith(node)</code> <b>swaps</b> the element out entirely</li>
+    </ul>
+    <div class="code-block"><div class="code-head"><span class="lang">javascript</span><button class="copy-btn">Copy</button></div>
+<pre><code class="hl-js">const list = document.querySelector("ul");
+const item = document.querySelector("li"); // first li
+const newEl = document.createElement("li");
+newEl.textContent = "Prepended";
+
+// prepend — inserts as FIRST child inside the parent
+list.prepend(newEl);
+// &lt;ul&gt;&lt;li&gt;Prepended&lt;/li&gt;...rest...&lt;/ul&gt;
+
+// before — inserts BEFORE the element (as a sibling, outside)
+const header = document.createElement("h3");
+list.before(header);
+// &lt;h3&gt;&lt;/h3&gt; &lt;ul&gt;...&lt;/ul&gt;
+
+// after — inserts AFTER the element (as a sibling, outside)
+const footer = document.createElement("p");
+list.after(footer);
+// &lt;ul&gt;...&lt;/ul&gt; &lt;p&gt;&lt;/p&gt;
+
+// replaceWith — swap the element for new content
+const ol = document.createElement("ol");
+list.replaceWith(ol);
+// &lt;ul&gt; is gone, &lt;ol&gt; takes its exact place</code></pre></div>
+    <div class="note-box box"><span class="tag">Key difference</span><p><code>before()</code> and <code>after()</code> are called <b>on the element itself</b>, not on the parent. That is the main difference from <code>insertBefore()</code>.</p></div>
+
+    <!-- Stepper 3 -->
+    <div class="stepper" data-steps="4">
+      <div class="st-top"><span>Stepper · Where does it land?</span><span class="counter">Step 1 / 4</span></div>
+      <svg viewBox="0 0 640 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Insertion positions">
+        <rect class="box-s" x="180" y="70" width="240" height="100" rx="8"/>
+        <text class="lbl" x="190" y="64">&lt;ul&gt;</text>
+        <rect class="li" x="196" y="90" width="208" height="30" rx="5"/><text x="212" y="110">&lt;li&gt; A</text>
+        <rect class="li" x="196" y="126" width="208" height="30" rx="5"/><text x="212" y="146">&lt;li&gt; B</text>
+        <g data-show="1"><rect class="mk" x="180" y="50" width="240" height="8" rx="4"/><text class="acc" x="440" y="58">list.before(node)</text><text class="lbl" x="440" y="74">outside, sibling above</text></g>
+        <g data-show="2"><rect class="mk" x="196" y="78" width="208" height="8" rx="4"/><text class="acc" x="440" y="88">list.prepend(node)</text><text class="lbl" x="440" y="104">inside, first child</text></g>
+        <g data-show="3"><rect class="mk" x="196" y="158" width="208" height="8" rx="4"/><text class="acc" x="440" y="168">list.append(node)</text><text class="lbl" x="440" y="184">inside, last child</text></g>
+        <g data-show="4"><rect class="mk" x="180" y="182" width="240" height="8" rx="4"/><text class="acc" x="440" y="196">list.after(node)</text><text class="lbl" x="440" y="212">outside, sibling below</text></g>
+      </svg>
+      <div class="cap">
+        <div class="on"><code>before()</code> puts the new node <b>outside</b> the target, as the previous sibling.</div>
+        <div><code>prepend()</code> puts the new node <b>inside</b> the parent as its <b>first child</b>.</div>
+        <div><code>append()</code> puts the new node <b>inside</b> the parent as its <b>last child</b>.</div>
+        <div><code>after()</code> puts the new node <b>outside</b> the target, as the next sibling.</div>
+      </div>
+      <div class="st-ctrl"><button class="back">← Back</button><div class="dots"></div><button class="fwd">Forward →</button></div>
+    </div>
+
+    <h3>element.remove(): self-removal</h3>
+    <p><code>element.remove()</code> lets an element <b>remove itself</b> from the DOM with no parent reference. It is the cleanest and most readable way to delete a node.</p>
+    <div class="code-block"><div class="code-head"><span class="lang">javascript</span><button class="copy-btn">Copy</button></div>
+<pre><code class="hl-js">const notification = document.querySelector(".toast");
+
+// Old way (verbose — needs parent reference)
+notification.parentNode.removeChild(notification);
+
+// Modern way — clean self-removal
+notification.remove();  // gone. No parent reference needed.
+
+// Real-world usage: auto-dismiss a toast after 3 seconds
+setTimeout(() =&gt; {
+  notification.remove();
+}, 3000);</code></pre></div>
+
+    <div class="demo"><h4>Try it · build and remove nodes</h4>
+      <input type="text" id="liText" value="Hello node" aria-label="Item text">
+      <div style="margin-top:8px">
+        <button class="btn" data-act="prepend">prepend()</button>
+        <button class="btn" data-act="append">append()</button>
+        <button class="btn" data-act="frag">fragment ×5</button>
+        <button class="btn alt" data-act="clear">clear</button>
+      </div>
+      <ul class="live-list" id="liveList"></ul>
+      <div class="out" id="liveOut">Items are created with createElement and textContent (safe from XSS). Click × on an item to call element.remove().</div>
+    </div>
+  </section>
+
+  <!-- 09 -->
+  <section data-title="Quick Reference &amp; Quiz" class="fade">
+    <div class="sec-head"><span class="sec-num"></span><h2>Quick Reference: Old vs Modern</h2></div>
+    <div class="table-wrap"><table>
+      <tr><th>Old API</th><th>Modern equivalent</th><th>Key difference</th></tr>
+      <tr><td><code>appendChild(node)</code></td><td><code>append(node)</code></td><td><code>append</code> accepts multiple args and strings</td></tr>
+      <tr><td><code>insertBefore(n, ref)</code></td><td><code>ref.before(n)</code></td><td><code>before/after</code> are called on the reference element</td></tr>
+      <tr><td><code>insertBefore(n, null)</code></td><td><code>parent.prepend(n)</code></td><td><code>prepend</code> for first-child insertion</td></tr>
+      <tr><td><code>parent.replaceChild(n, old)</code></td><td><code>old.replaceWith(n)</code></td><td><code>replaceWith</code> is called on the element itself</td></tr>
+      <tr><td><code>parent.removeChild(el)</code></td><td><code>el.remove()</code></td><td>No parent reference needed</td></tr>
+    </table></div>
+    <div class="note-box box"><span class="tag">Know both</span><p>The old API is everywhere in legacy code. The modern API is what you write in new code. React and other frameworks use the same concepts under the hood on every render cycle.</p></div>
+
+    <h3>Attribute vs Property cheat sheet</h3>
+    <div class="table-wrap"><table>
+      <tr><th>Question</th><th>Attribute</th><th>Property</th></tr>
+      <tr><td>Where does it live?</td><td>HTML markup</td><td>DOM JS object</td></tr>
+      <tr><td>Reflects user changes?</td><td><span class="no">No</span></td><td><span class="yes">Yes</span></td></tr>
+      <tr><td>Value type</td><td>Always a string</td><td>Can be boolean, number, etc.</td></tr>
+      <tr><td>Access</td><td><code>getAttribute()</code></td><td><code>element.value</code></td></tr>
+    </table></div>
+
+    <div class="sec-head" style="margin-top:44px"><span class="sec-num" style="visibility:hidden">·</span><h2>Test yourself</h2></div>
+    <div id="quizRoot"></div>
+    <div class="score" id="quizScore"></div>
+  </section>
+
+  <footer>DOM Notes · Class 2 &amp; 3 · Attributes, Properties, Creating, Inserting &amp; Removing Nodes</footer>
+</main>
+
+<script>
+(function(){
+  /* ---------- Section numbering + nav ---------- */
+  var sections = Array.prototype.slice.call(document.querySelectorAll('main section'));
+  var nav = document.getElementById('nav');
+  sections.forEach(function(sec, i){
+    var n = String(i + 1).padStart(2, '0');
+    sec.id = 'sec-' + n;
+    sec.querySelector('.sec-num').textContent = n;
+    var a = document.createElement('a');
+    a.href = '#sec-' + n;
+    a.innerHTML = '<span>' + n + '</span>' + sec.dataset.title;
+    nav.appendChild(a);
+  });
+  var links = nav.querySelectorAll('a');
+
+  /* ---------- Scroll-spy ---------- */
+  function spy(){
+    var y = window.scrollY + 140, cur = 0;
+    sections.forEach(function(s, i){ if (s.offsetTop <= y) cur = i; });
+    links.forEach(function(l, i){ l.classList.toggle('active', i === cur); });
+  }
+  window.addEventListener('scroll', spy, {passive:true});
+  window.addEventListener('resize', spy);
+  spy();
+
+  /* ---------- Mobile menu ---------- */
+  var sb = document.getElementById('sidebar'), sc = document.getElementById('scrim');
+  function toggleMenu(open){ sb.classList.toggle('open', open); sc.classList.toggle('show', open); }
+  document.getElementById('menuBtn').addEventListener('click', function(){ toggleMenu(!sb.classList.contains('open')); });
+  sc.addEventListener('click', function(){ toggleMenu(false); });
+  links.forEach(function(l){ l.addEventListener('click', function(){ toggleMenu(false); }); });
+
+  /* ---------- Fade in on scroll ---------- */
+  if ('IntersectionObserver' in window) {
+    var io = new IntersectionObserver(function(es){
+      es.forEach(function(e){ if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+    }, {threshold:0.05});
+    sections.forEach(function(s){ io.observe(s); });
+  } else { sections.forEach(function(s){ s.classList.add('in'); }); }
+
+  /* ---------- Syntax highlight ---------- */
+  function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  var re = /(\/\/[^\n]*)|("(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*'|`(?:[^`\\]|\\.)*`)|\b(const|let|var|function|if|else|for|return|new|delete|of|in|true|false|null|undefined)\b|\b(\d+)\b|([A-Za-z_$][\w$]*)(?=\()/g;
+  document.querySelectorAll('code.hl-js').forEach(function(code){
+    var src = code.textContent, out = '', last = 0, m;
+    re.lastIndex = 0;
+    while ((m = re.exec(src))) {
+      out += esc(src.slice(last, m.index));
+      var cls = m[1] ? 'tk-c' : m[2] ? 'tk-s' : m[3] ? 'tk-k' : m[4] ? 'tk-n' : 'tk-f';
+      out += '<span class="' + cls + '">' + esc(m[0]) + '</span>';
+      last = re.lastIndex;
+    }
+    out += esc(src.slice(last));
+    code.innerHTML = out;
+  });
+
+  /* ---------- Copy buttons ---------- */
+  document.querySelectorAll('.copy-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var text = btn.closest('.code-block').querySelector('pre').innerText;
+      function ok(){ btn.textContent = 'Copied ✓'; btn.classList.add('done'); setTimeout(function(){ btn.textContent = 'Copy'; btn.classList.remove('done'); }, 1600); }
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(ok, fallback);
+      } else fallback();
+      function fallback(){
+        var ta = document.createElement('textarea'); ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+        document.body.appendChild(ta); ta.select();
+        try { document.execCommand('copy'); ok(); } catch (e) { btn.textContent = 'Press Ctrl+C'; }
+        ta.remove();
+      }
+    });
+  });
+
+  /* ---------- Steppers ---------- */
+  document.querySelectorAll('.stepper').forEach(function(st){
+    var total = +st.dataset.steps, cur = 1;
+    var counter = st.querySelector('.counter'), caps = st.querySelectorAll('.cap > div');
+    var back = st.querySelector('.back'), fwd = st.querySelector('.fwd'), dots = st.querySelector('.dots');
+    for (var i = 0; i < total; i++) dots.appendChild(document.createElement('i'));
+    function render(){
+      st.querySelectorAll('svg [data-show]').forEach(function(el){
+        el.classList.toggle('on', el.getAttribute('data-show').split(',').indexOf(String(cur)) > -1);
+      });
+      caps.forEach(function(c, i){ c.classList.toggle('on', i === cur - 1); });
+      dots.querySelectorAll('i').forEach(function(d, i){ d.classList.toggle('on', i === cur - 1); });
+      counter.textContent = 'Step ' + cur + ' / ' + total;
+      back.disabled = cur === 1; fwd.disabled = cur === total;
+    }
+    back.addEventListener('click', function(){ if (cur > 1) { cur--; render(); } });
+    fwd.addEventListener('click', function(){ if (cur < total) { cur++; render(); } });
+    render();
+  });
+
+  /* ---------- Demo 1: attribute vs property ---------- */
+  var di = document.getElementById('demoInput'), dout = document.getElementById('demoOut');
+  document.getElementById('btnAttr').addEventListener('click', function(){ dout.textContent = 'input.getAttribute("value")  →  "' + di.getAttribute('value') + '"   (initial HTML)'; });
+  document.getElementById('btnProp').addEventListener('click', function(){ dout.textContent = 'input.value  →  "' + di.value + '"   (live state)'; });
+
+  /* ---------- Demo 2: theme toggle ---------- */
+  var box = document.getElementById('themeBox'), tout = document.getElementById('themeOut');
+  function report(){ tout.textContent = 'box.dataset.theme → "' + box.dataset.theme + '"\nbox.getAttribute("data-theme") → "' + box.getAttribute('data-theme') + '"\nbox.className → "' + box.className + '"'; }
+  document.getElementById('themeBtn').addEventListener('click', function(){
+    var isDark = box.dataset.theme === 'dark';
+    box.dataset.theme = isDark ? 'light' : 'dark';
+    box.classList.toggle('dark-mode', !isDark);
+    report();
+  });
+  report();
+
+  /* ---------- Demo 3: node builder ---------- */
+  var list = document.getElementById('liveList'), lout = document.getElementById('liveOut'), txt = document.getElementById('liText'), counter = 0;
+  function makeLi(label){
+    var li = document.createElement('li');
+    li.className = 'fresh';
+    li.appendChild(document.createTextNode(label));
+    var x = document.createElement('button'); x.textContent = '× remove'; x.setAttribute('aria-label', 'Remove item');
+    x.addEventListener('click', function(){ li.remove(); lout.textContent = 'li.remove()  →  removed "' + label + '"'; });
+    li.appendChild(x);
+    setTimeout(function(){ li.classList.remove('fresh'); }, 900);
+    return li;
+  }
+  document.querySelectorAll('[data-act]').forEach(function(b){
+    b.addEventListener('click', function(){
+      var act = b.dataset.act, label = (txt.value || 'Item') + ' #' + (++counter);
+      if (act === 'prepend') { list.prepend(makeLi(label)); lout.textContent = 'list.prepend(li)  →  first child'; }
+      else if (act === 'append') { list.append(makeLi(label)); lout.textContent = 'list.append(li)  →  last child'; }
+      else if (act === 'frag') {
+        var f = document.createDocumentFragment();
+        for (var i = 0; i < 5; i++) f.appendChild(makeLi((txt.value || 'Item') + ' #' + (++counter)));
+        list.appendChild(f);
+        lout.textContent = 'list.appendChild(fragment)  →  5 nodes, 1 insertion';
+      } else { list.replaceChildren(); lout.textContent = 'list.replaceChildren()  →  list emptied'; }
+    });
+  });
+
+  /* ---------- Quiz ---------- */
+  var QUIZ = [
+    {q:'The user types "Bob" into an input whose HTML says value="Alice". What does input.getAttribute("value") return?', o:['"Bob"','"Alice"','null','undefined'], a:1, e:'The attribute holds the initial HTML value. Only the property input.value changes with user input.'},
+    {q:'An element has data-bg-color="red". How do you read it in JavaScript?', o:['el.dataset.bg-color','el.dataset["bg_color"]','el.dataset.bgColor','el.data.bgColor'], a:2, e:'Kebab-case in HTML becomes camelCase on dataset, so data-bg-color becomes dataset.bgColor.'},
+    {q:'Which is the best way to add one class without touching the others?', o:['el.className = "active"','el.classList.add("active")','el.setAttribute("class", "active")','el.dataset.class = "active"'], a:1, e:'classList.add adds a single class. className and setAttribute("class") replace the whole class string.'},
+    {q:'Why is a DocumentFragment faster for inserting 1000 items?', o:['It compresses the HTML','It skips JavaScript execution','All nodes are inserted in one operation, causing one reflow','It uses innerHTML internally'], a:2, e:'Children are built in memory and inserted once, so the browser recalculates layout a single time.'},
+    {q:'Which call safely puts untrusted user text into a paragraph?', o:['p.innerHTML = userInput','p.textContent = userInput','p.outerHTML = userInput','p.insertAdjacentHTML("beforeend", userInput)'], a:1, e:'textContent treats the input as plain text, which prevents XSS. The other options parse HTML.'},
+    {q:'What is the modern replacement for parent.removeChild(el)?', o:['el.delete()','parent.pop(el)','el.remove()','el.detach()'], a:2, e:'element.remove() removes the element itself and needs no parent reference.'}
+  ];
+  var root = document.getElementById('quizRoot'), scoreEl = document.getElementById('quizScore'), right = 0, answered = 0;
+  QUIZ.forEach(function(item, qi){
+    var wrap = document.createElement('div'); wrap.className = 'quiz';
+    var h = document.createElement('div'); h.className = 'q';
+    h.innerHTML = '<small>Q' + (qi + 1) + '</small>'; h.appendChild(document.createTextNode(item.q));
+    wrap.appendChild(h);
+    var ex = document.createElement('div'); ex.className = 'explain'; ex.textContent = item.e;
+    var btns = [];
+    item.o.forEach(function(label, oi){
+      var b = document.createElement('button'); b.className = 'opt'; b.textContent = label;
+      b.addEventListener('click', function(){
+        btns.forEach(function(x){ x.disabled = true; });
+        btns[item.a].classList.add('right');
+        if (oi !== item.a) b.classList.add('wrong'); else right++;
+        answered++; ex.classList.add('show');
+        scoreEl.textContent = 'Score: ' + right + ' / ' + QUIZ.length + (answered === QUIZ.length ? '  ·  done' : '');
+      });
+      btns.push(b); wrap.appendChild(b);
+    });
+    wrap.appendChild(ex); root.appendChild(wrap);
+  });
+})();
+</script>
+</body>
+</html>

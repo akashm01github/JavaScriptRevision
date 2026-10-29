@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DOM Notes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F5F2EB;
+  --paper-2:#ECE7DB;
+  --paper-3:#E2DCCD;
+  --ink:#0E0F14;
+  --ink-2:#1B1D26;
+  --ink-3:#2B2E3A;
+  --muted:#6A6B73;
+  --rule:#D8D2C2;
+  --accent:#C84B1F;
+  --accent-soft:#F8E4DA;
+  --green:#2E7D52;
+  --green-soft:#DDEFE4;
+  --blue:#2455A4;
+  --blue-soft:#DEE7F6;
+  --amber:#B7791F;
+  --amber-soft:#F8EBCF;
+  --red:#B3261E;
+  --red-soft:#F7DEDB;
+  --code-bg:#14151C;
+  --sidebar-w:260px;
+  --serif:'Fraunces',Georgia,serif;
+  --sans:'DM Sans',system-ui,sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;scroll-padding-top:24px}
+body{background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16.5px;line-height:1.7;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+
+/* ============ LAYOUT ============ */
+.layout{display:flex;align-items:flex-start}
+.sidebar{
+  position:sticky;top:0;height:100vh;width:var(--sidebar-w);flex:none;
+  background:var(--ink);color:#D9D6CC;padding:30px 0 20px;display:flex;flex-direction:column;overflow-y:auto
+}
+.brand{padding:0 26px 22px;border-bottom:1px solid rgba(255,255,255,.09)}
+.brand .logo{font-family:var(--serif);font-weight:700;font-size:28px;color:#fff;letter-spacing:-.5px;line-height:1}
+.brand .logo span{color:var(--accent)}
+.brand .sub{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#8C8A82;margin-top:10px}
+.nav{padding:18px 0;flex:1}
+.nav a{
+  display:flex;align-items:baseline;gap:12px;padding:9px 26px;text-decoration:none;
+  font-size:14.5px;color:#A8A59B;border-left:3px solid transparent;transition:all .2s
+}
+.nav a .n{font-family:var(--mono);font-size:11.5px;color:#6D6B64;min-width:20px;transition:color .2s}
+.nav a:hover{color:#fff;background:rgba(255,255,255,.04)}
+.nav a.active{color:#fff;border-left-color:var(--accent);background:rgba(200,75,31,.12)}
+.nav a.active .n{color:var(--accent)}
+.side-foot{padding:16px 26px 0;border-top:1px solid rgba(255,255,255,.09);font-family:var(--mono);font-size:11px;color:#77756D}
+.progress{height:3px;background:rgba(255,255,255,.1);border-radius:3px;margin-top:10px;overflow:hidden}
+.progress i{display:block;height:100%;width:0;background:var(--accent);transition:width .15s}
+
+main{flex:1;min-width:0;padding:0 0 100px}
+.wrap{max-width:860px;margin:0 auto;padding:0 44px}
+
+/* ============ HERO ============ */
+.hero{padding:84px 0 56px;border-bottom:2px solid var(--ink);position:relative;overflow:hidden}
+.hero .wrap{position:relative}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);display:flex;align-items:center;gap:12px;animation:fadeUp .7s both}
+.eyebrow::before{content:"";width:36px;height:2px;background:var(--accent)}
+.hero h1{font-family:var(--serif);font-weight:800;font-size:clamp(46px,8vw,92px);line-height:.98;letter-spacing:-.03em;margin:22px 0 22px;animation:fadeUp .7s .1s both}
+.hero h1 em{font-style:italic;font-weight:400;color:var(--accent)}
+.hero .lead{font-size:19px;color:#3A3C46;max-width:620px;animation:fadeUp .7s .2s both}
+.hero-meta{display:flex;flex-wrap:wrap;gap:10px;margin-top:30px;animation:fadeUp .7s .3s both}
+.ghost{position:absolute;right:-10px;top:-30px;font-family:var(--serif);font-weight:900;font-size:230px;line-height:1;color:transparent;-webkit-text-stroke:1.5px var(--rule);letter-spacing:-.05em;pointer-events:none;user-select:none}
+
+/* ============ SECTIONS ============ */
+section{padding:64px 0 8px;border-bottom:1px solid var(--rule)}
+section:last-of-type{border-bottom:none}
+.reveal{opacity:0;transform:translateY(22px)}
+.reveal.in{animation:fadeUp .7s both}
+.sec-head{display:flex;align-items:flex-end;gap:18px;margin-bottom:26px}
+.sec-num{font-family:var(--serif);font-weight:300;font-size:64px;line-height:.8;color:var(--accent);letter-spacing:-.04em}
+.sec-head h2{font-family:var(--serif);font-weight:700;font-size:clamp(28px,4vw,38px);line-height:1.1;letter-spacing:-.02em}
+h3{font-family:var(--serif);font-weight:600;font-size:22px;margin:34px 0 10px;letter-spacing:-.01em}
+p{margin:0 0 16px}
+p strong{font-weight:700}
+ul.clean{list-style:none;margin:0 0 18px}
+ul.clean li{position:relative;padding-left:24px;margin-bottom:8px}
+ul.clean li::before{content:"";position:absolute;left:2px;top:.72em;width:8px;height:8px;background:var(--accent);transform:rotate(45deg)}
+code.i{font-family:var(--mono);font-size:.86em;background:var(--paper-2);border:1px solid var(--rule);padding:1px 6px;border-radius:4px;color:var(--accent)}
+
+/* ============ BADGES ============ */
+.badge{display:inline-block;font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;padding:3px 10px;border-radius:99px;border:1px solid var(--ink);background:transparent;white-space:nowrap}
+.badge.accent{background:var(--accent);border-color:var(--accent);color:#fff}
+.badge.green{background:var(--green-soft);border-color:var(--green);color:var(--green)}
+.badge.blue{background:var(--blue-soft);border-color:var(--blue);color:var(--blue)}
+.badge.amber{background:var(--amber-soft);border-color:var(--amber);color:var(--amber)}
+.badge.red{background:var(--red-soft);border-color:var(--red);color:var(--red)}
+.badge.dark{background:var(--ink);color:#fff}
+
+/* ============ CALLOUTS ============ */
+.concept-box,.note-box,.warning-box{border-radius:6px;padding:20px 24px 18px;margin:26px 0;position:relative}
+.concept-box{background:var(--ink);color:#E8E5DB;border-left:5px solid var(--accent)}
+.concept-box .label,.note-box .label,.warning-box .label{display:block;font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:8px;font-weight:500}
+.concept-box .label{color:var(--accent)}
+.concept-box p:last-child,.note-box p:last-child,.warning-box p:last-child{margin-bottom:0}
+.concept-box strong{color:#fff}
+.concept-box code.i{background:#23252F;border-color:#34374A;color:#F0A58A}
+.note-box{background:var(--blue-soft);border:1px solid #B9CBEA;border-left:5px solid var(--blue)}
+.note-box .label{color:var(--blue)}
+.warning-box{background:var(--amber-soft);border:1px solid #E7CF98;border-left:5px solid var(--amber)}
+.warning-box .label{color:var(--amber)}
+.warning-box.danger{background:var(--red-soft);border-color:#E8B7B2;border-left-color:var(--red)}
+.warning-box.danger .label{color:var(--red)}
+
+/* ============ CODE ============ */
+.code{background:var(--code-bg);border-radius:8px;margin:22px 0;overflow:hidden;box-shadow:0 10px 28px -14px rgba(14,15,20,.55)}
+.code-head{display:flex;justify-content:space-between;align-items:center;padding:9px 14px 9px 18px;background:#1E2029;border-bottom:1px solid #2C2F3C}
+.code-head .lang{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#8E91A3;display:flex;align-items:center;gap:8px}
+.code-head .lang::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--accent)}
+.copy{font-family:var(--mono);font-size:11px;letter-spacing:.05em;color:#C7C9D6;background:transparent;border:1px solid #3A3D4E;border-radius:4px;padding:4px 11px;cursor:pointer;transition:all .2s}
+.copy:hover{background:var(--accent);border-color:var(--accent);color:#fff}
+.copy.done{background:var(--green);border-color:var(--green);color:#fff}
+.code pre{padding:18px 20px;overflow-x:auto;font-family:var(--mono);font-size:13.5px;line-height:1.75;color:#DCDDE6;tab-size:2}
+.code code{font-family:inherit}
+.tok-k{color:#F28B63}
+.tok-s{color:#9ED08A}
+.tok-n{color:#E8C170}
+.tok-c{color:#6E7287;font-style:italic}
+.tok-f{color:#7FB5F5}
+.tok-t{color:#F28B63}
+.tok-a{color:#E8C170}
+.tok-p{color:#7FB5F5}
+
+/* ============ TABLES ============ */
+.table-wrap{overflow-x:auto;margin:24px 0;border:1.5px solid var(--ink);border-radius:6px;background:#fff}
+table{width:100%;border-collapse:collapse;font-size:15px}
+th{background:var(--ink);color:#fff;text-align:left;font-family:var(--mono);font-size:11.5px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;padding:12px 16px}
+td{padding:12px 16px;border-top:1px solid var(--rule);vertical-align:top}
+tbody tr:nth-child(even) td{background:#FAF8F3}
+td:first-child{font-weight:500}
+td code{font-family:var(--mono);font-size:.88em;color:var(--accent)}
+.flag{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;font-weight:700;font-size:14px}
+.flag.yes{background:var(--green-soft);color:var(--green)}
+.flag.no{background:var(--red-soft);color:var(--red)}
+.flag.warn{background:var(--amber-soft);color:var(--amber)}
+.flag-table td:not(:first-child),.flag-table th:not(:first-child){text-align:center}
+
+/* ============ FLOW DIAGRAM ============ */
+.flow{background:#fff;border:1.5px solid var(--ink);border-radius:8px;padding:26px 22px;margin:26px 0}
+.flow-title{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:18px}
+.flow-row{display:flex;align-items:center;flex-wrap:wrap;gap:0;margin-bottom:14px}
+.flow-row:last-child{margin-bottom:0}
+.fnode{font-family:var(--mono);font-size:13px;font-weight:500;padding:9px 14px;border:1.5px solid var(--ink);border-radius:5px;background:var(--paper);white-space:nowrap}
+.fnode.html{background:var(--accent-soft);border-color:var(--accent)}
+.fnode.css{background:var(--blue-soft);border-color:var(--blue)}
+.fnode.out{background:var(--ink);color:#fff}
+.fnode.merge{background:var(--amber-soft);border-color:var(--amber)}
+.farrow{width:38px;height:2px;flex:none;margin:0 4px;position:relative;
+  background:repeating-linear-gradient(90deg,var(--accent) 0 6px,transparent 6px 12px);background-size:24px 2px;animation:dataFlow 1s linear infinite}
+.farrow::after{content:"";position:absolute;right:-2px;top:-4px;border-left:7px solid var(--accent);border-top:5px solid transparent;border-bottom:5px solid transparent}
+.flow-join{font-family:var(--mono);font-size:12px;color:var(--muted);margin:4px 0 14px 6px}
+
+/* ============ STEPPER ============ */
+.stepper{background:#fff;border:1.5px solid var(--ink);border-radius:8px;margin:28px 0;overflow:hidden}
+.stepper-head{display:flex;justify-content:space-between;align-items:center;padding:11px 18px;background:var(--paper-2);border-bottom:1.5px solid var(--ink)}
+.step-count{font-family:var(--mono);font-size:12px;color:var(--muted)}
+.stepper svg{display:block;width:100%;height:auto;background:
+  linear-gradient(var(--paper) 1px,transparent 1px) 0 0/100% 28px,#FDFCF9}
+.stepper svg text{font-family:var(--mono);font-size:13px;font-weight:500;fill:var(--ink);text-anchor:middle;dominant-baseline:middle}
+.stepper svg text.ann{fill:var(--accent);font-size:12px}
+.stepper .n{opacity:.12;transition:opacity .35s}
+.stepper .n.show{opacity:1}
+.stepper .box{fill:#fff;stroke:var(--ink);stroke-width:1.8;rx:6}
+.stepper .n.h .box{fill:var(--accent-soft);stroke:var(--accent)}
+.stepper .n.c .box{fill:var(--blue-soft);stroke:var(--blue)}
+.stepper .n.r .box{fill:var(--amber-soft);stroke:var(--amber)}
+.stepper .n.o .box{fill:var(--ink)}
+.stepper .n.o text{fill:#fff}
+.stepper .n.now .box{stroke:var(--accent);stroke-width:3;filter:drop-shadow(0 3px 0 rgba(200,75,31,.35))}
+.stepper .e{fill:none;stroke:var(--ink);stroke-width:2;opacity:.08;transition:opacity .35s}
+.stepper .e.show{opacity:.55}
+.stepper .e.now{opacity:1;stroke:var(--accent);stroke-dasharray:6 6;animation:dataFlowSvg .9s linear infinite}
+.step-caption{padding:16px 20px;border-top:1.5px solid var(--ink);font-size:15.5px;min-height:76px;background:#FFFDF8}
+.step-caption b{font-family:var(--serif);font-size:17px;color:var(--accent)}
+.stepper-ctrl{display:flex;gap:10px;padding:12px 18px;border-top:1px solid var(--rule);background:var(--paper-2)}
+.stepper-ctrl button,.btn{font-family:var(--mono);font-size:12.5px;letter-spacing:.04em;padding:8px 18px;border:1.5px solid var(--ink);background:#fff;color:var(--ink);border-radius:5px;cursor:pointer;transition:all .15s}
+.stepper-ctrl button:hover:not(:disabled){background:var(--ink);color:#fff}
+.stepper-ctrl button[data-dir="1"]{background:var(--accent);border-color:var(--accent);color:#fff;margin-left:auto}
+.stepper-ctrl button[data-dir="1"]:hover:not(:disabled){background:#A93B14;border-color:#A93B14}
+.stepper-ctrl button:disabled{opacity:.35;cursor:not-allowed}
+
+/* ============ QUIZ ============ */
+.quiz{background:#fff;border:1.5px solid var(--ink);border-radius:8px;padding:22px 24px;margin:22px 0}
+.quiz .q{font-family:var(--serif);font-weight:600;font-size:19px;line-height:1.4;margin-bottom:14px}
+.quiz .q small{display:block;font-family:var(--mono);font-weight:500;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.opt{display:block;width:100%;text-align:left;font-family:var(--sans);font-size:15.5px;padding:11px 16px;margin-bottom:8px;border:1.5px solid var(--rule);border-radius:6px;background:var(--paper);cursor:pointer;transition:all .15s;color:var(--ink)}
+.opt:hover:not(:disabled){border-color:var(--ink);background:#fff;transform:translateX(3px)}
+.opt:disabled{cursor:default}
+.opt.correct{background:var(--green-soft);border-color:var(--green)}
+.opt.wrong{background:var(--red-soft);border-color:var(--red)}
+.opt code{font-family:var(--mono);font-size:.9em}
+.explain{display:none;margin-top:12px;padding:12px 16px;border-left:4px solid var(--green);background:var(--green-soft);border-radius:4px;font-size:15px}
+.explain.show{display:block;animation:fadeUp .4s both}
+.score{display:flex;align-items:center;gap:16px;margin-top:26px;padding:18px 22px;background:var(--ink);color:#fff;border-radius:8px;font-family:var(--mono);font-size:14px}
+.score b{font-family:var(--serif);font-size:30px;color:var(--accent)}
+.btn.reset{margin-left:auto;background:transparent;color:#fff;border-color:#555}
+.btn.reset:hover{background:var(--accent);border-color:var(--accent)}
+
+/* ============ DEMO ============ */
+.demo{background:#fff;border:1.5px dashed var(--ink);border-radius:8px;padding:20px 22px;margin:22px 0}
+.demo-title{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:12px}
+.demo-target{font-family:var(--serif);font-size:26px;font-weight:600;padding:16px;border-radius:6px;background:var(--paper);border:1px solid var(--rule);margin-bottom:14px;transition:all .3s}
+.demo-target.highlight{background:var(--accent-soft);color:var(--accent);border-color:var(--accent);transform:translateX(6px)}
+.demo-target.big{font-size:34px;letter-spacing:-.02em}
+.demo-target.dark{background:var(--ink);color:#fff}
+.demo-btns{display:flex;flex-wrap:wrap;gap:8px}
+.demo-state{font-family:var(--mono);font-size:12.5px;color:var(--muted);margin-top:12px}
+.demo-state b{color:var(--accent)}
+
+/* ============ FOOTER ============ */
+footer{padding:50px 0 0;text-align:center;font-family:var(--mono);font-size:12px;color:var(--muted);letter-spacing:.08em}
+
+/* ============ ANIMATIONS ============ */
+@keyframes fadeUp{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
+@keyframes dataFlow{to{background-position:24px 0}}
+@keyframes dataFlowSvg{to{stroke-dashoffset:-12}}
+
+@media(max-width:940px){
+  .layout{display:block}
+  .sidebar{position:relative;height:auto;width:100%;padding:18px 0 8px}
+  .nav{display:flex;overflow-x:auto;padding:10px 12px}
+  .nav a{border-left:0;border-bottom:3px solid transparent;white-space:nowrap;padding:8px 12px}
+  .nav a.active{border-bottom-color:var(--accent)}
+  .side-foot{display:none}
+  .wrap{padding:0 22px}
+  .ghost{font-size:120px}
+  .sec-num{font-size:48px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.reveal{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+<div class="layout">
+
+<!-- ================= SIDEBAR ================= -->
+<aside class="sidebar">
+  <div class="brand">
+    <div class="logo">DOM<span>.</span>notes</div>
+    <div class="sub">JavaScript · Class 02</div>
+  </div>
+  <nav class="nav" id="nav">
+    <a href="#pipeline"><span class="n">01</span>Browser Pipeline</a>
+    <a href="#basics"><span class="n">02</span>DOM Basics</a>
+    <a href="#selecting"><span class="n">03</span>Selecting Elements</a>
+    <a href="#lists"><span class="n">04</span>NodeList vs HTMLCollection</a>
+    <a href="#text"><span class="n">05</span>Changing Text</a>
+    <a href="#style"><span class="n">06</span>Changing Styles</a>
+    <a href="#classlist"><span class="n">07</span>classList</a>
+    <a href="#quiz"><span class="n">08</span>Quiz</a>
+  </nav>
+  <div class="side-foot">
+    <div id="pct">0% read</div>
+    <div class="progress"><i id="bar"></i></div>
+  </div>
+</aside>
+
+<!-- ================= MAIN ================= -->
+<main>
+
+<header class="hero">
+  <div class="ghost">DOM</div>
+  <div class="wrap">
+    <div class="eyebrow">JavaScript · Class 02</div>
+    <h1>The <em>DOM</em>,<br>from HTML to pixels</h1>
+    <p class="lead">How the browser turns HTML text into a live tree of objects, and how JavaScript selects, reads, and changes that tree: text, styles, and classes.</p>
+    <div class="hero-meta">
+      <span class="badge accent">8 sections</span>
+      <span class="badge dark">2 interactive steppers</span>
+      <span class="badge green">4 quiz questions</span>
+      <span class="badge blue">Live demos</span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+<!-- ========== 01 PIPELINE ========== -->
+<section id="pipeline" class="reveal">
+  <div class="sec-head"><div class="sec-num">01</div><h2>Browser Pipeline<br>(HTML → Screen)</h2></div>
+  <p>Before JavaScript can touch anything, the browser has to turn plain text into something it can draw. HTML and CSS take two parallel routes, then merge.</p>
+
+  <div class="flow">
+    <div class="flow-title">The rendering pipeline</div>
+    <div class="flow-row">
+      <span class="fnode html">HTML</span><span class="farrow"></span>
+      <span class="fnode">Parsing</span><span class="farrow"></span>
+      <span class="fnode">Tokenization</span><span class="farrow"></span>
+      <span class="fnode html">DOM Tree</span>
+    </div>
+    <div class="flow-row">
+      <span class="fnode css">CSS</span><span class="farrow"></span>
+      <span class="fnode">Parsing</span><span class="farrow"></span>
+      <span class="fnode css">CSSOM Tree</span>
+    </div>
+    <div class="flow-join">↓ DOM + CSSOM combine</div>
+    <div class="flow-row">
+      <span class="fnode merge">Render Tree</span><span class="farrow"></span>
+      <span class="fnode">Layout</span><span class="farrow"></span>
+      <span class="fnode">Paint</span><span class="farrow"></span>
+      <span class="fnode out">Screen</span>
+    </div>
+  </div>
+
+  <h3>Walk through it</h3>
+  <div class="stepper" data-steps="<b>Step 1 · Parse HTML.</b> The browser reads the HTML from top to bottom and breaks it into tokens: start tag, end tag, text, attribute.|<b>Step 2 · Build the DOM.</b> Tokens become node objects, and the nodes are linked into the DOM tree.|<b>Step 3 · Build the CSSOM.</b> In parallel, the browser parses CSS and builds a tree of style rules.|<b>Step 4 · Render Tree.</b> DOM and CSSOM are combined. Only visible nodes are kept, so display: none elements are left out.|<b>Step 5 · Layout.</b> The browser calculates the exact size and position of every node in the render tree.|<b>Step 6 · Paint.</b> Finally the pixels are drawn and you see the page on the screen.">
+    <div class="stepper-head"><span class="badge accent">Interactive</span><span class="step-count">Step 1 / 6</span></div>
+    <svg viewBox="0 0 780 240" role="img" aria-label="Browser rendering pipeline">
+      <defs><marker id="ah1" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#0E0F14"/></marker></defs>
+      <path class="e" data-s="1" d="M110 52 H140" marker-end="url(#ah1)"/>
+      <path class="e" data-s="2" d="M240 52 H270" marker-end="url(#ah1)"/>
+      <path class="e" data-s="3" d="M110 152 H140" marker-end="url(#ah1)"/>
+      <path class="e" data-s="3" d="M240 152 H270" marker-end="url(#ah1)"/>
+      <path class="e" data-s="4" d="M370 52 C385 52 385 113 400 113" marker-end="url(#ah1)"/>
+      <path class="e" data-s="4" d="M370 152 C385 152 385 113 400 113" marker-end="url(#ah1)"/>
+      <path class="e" data-s="5" d="M500 113 H520" marker-end="url(#ah1)"/>
+      <path class="e" data-s="6" d="M620 113 H640" marker-end="url(#ah1)"/>
+      <path class="e" data-s="6" d="M690 135 V172" marker-end="url(#ah1)"/>
+      <g class="n h" data-s="1"><rect class="box" x="10" y="30" width="100" height="44"/><text x="60" y="52">HTML</text></g>
+      <g class="n" data-s="1"><rect class="box" x="140" y="30" width="100" height="44"/><text x="190" y="52">Tokens</text></g>
+      <g class="n h" data-s="2"><rect class="box" x="270" y="30" width="100" height="44"/><text x="320" y="52">DOM Tree</text></g>
+      <g class="n c" data-s="3"><rect class="box" x="10" y="130" width="100" height="44"/><text x="60" y="152">CSS</text></g>
+      <g class="n" data-s="3"><rect class="box" x="140" y="130" width="100" height="44"/><text x="190" y="152">Parse</text></g>
+      <g class="n c" data-s="3"><rect class="box" x="270" y="130" width="100" height="44"/><text x="320" y="152">CSSOM</text></g>
+      <g class="n r" data-s="4"><rect class="box" x="400" y="91" width="100" height="44"/><text x="450" y="113">Render Tree</text></g>
+      <g class="n" data-s="5"><rect class="box" x="520" y="91" width="100" height="44"/><text x="570" y="113">Layout</text></g>
+      <g class="n" data-s="6"><rect class="box" x="640" y="91" width="100" height="44"/><text x="690" y="113">Paint</text></g>
+      <g class="n o" data-s="6"><rect class="box" x="640" y="175" width="100" height="44"/><text x="690" y="197">Screen</text></g>
+    </svg>
+    <div class="step-caption"></div>
+    <div class="stepper-ctrl"><button data-dir="-1">← Back</button><button data-dir="1">Forward →</button></div>
+  </div>
+
+  <h3>Key terms</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Term</th><th>Meaning</th></tr></thead>
+      <tbody>
+        <tr><td>Parsing</td><td>The browser reads HTML top to bottom and understands its structure.</td></tr>
+        <tr><td>Tokenization</td><td>Breaks HTML into tokens: Start Tag, End Tag, Text, Attribute.</td></tr>
+        <tr><td>DOM</td><td>Document Object Model, a tree of HTML objects.</td></tr>
+        <tr><td>CSSOM</td><td>CSS Object Model, a tree of CSS rules.</td></tr>
+        <tr><td>Render Tree</td><td>Combined visual structure. It ignores <code>display: none</code>.</td></tr>
+        <tr><td>Layout</td><td>Calculates the size and position of every element.</td></tr>
+        <tr><td>Paint</td><td>Draws the actual pixels on screen.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="concept-box">
+    <span class="label">Analogy · building a house</span>
+    <p><strong>HTML</strong> = the materials. <strong>DOM</strong> = the blueprint. <strong>CSSOM</strong> = the decoration instructions. <strong>Render Tree</strong> = the final plan. <strong>Layout</strong> = measuring. <strong>Paint</strong> = building.</p>
+  </div>
+
+  <div class="note-box">
+    <span class="label">Note</span>
+    <p>An element with <code class="i">display: none</code> exists in the DOM but not in the render tree. An element with <code class="i">visibility: hidden</code> is in the render tree and takes up space; it just isn't painted.</p>
+  </div>
+</section>
+
+<!-- ========== 02 BASICS ========== -->
+<section id="basics" class="reveal">
+  <div class="sec-head"><div class="sec-num">02</div><h2>DOM Basics</h2></div>
+
+  <div class="concept-box">
+    <span class="label">Core idea</span>
+    <p>The DOM is a <strong>live object tree</strong>, not the HTML text itself. JavaScript manipulates the DOM, never the raw HTML file.</p>
+  </div>
+
+  <ul class="clean">
+    <li>Every tag, attribute, and piece of text becomes a <strong>node</strong>.</li>
+    <li>Node relationships: <span class="badge accent">Parent</span> <span class="badge blue">Child</span> <span class="badge green">Sibling</span></li>
+    <li>The root of everything is <code class="i">document</code>.</li>
+    <li>Change the DOM and the browser updates the screen. That is why it is called "live".</li>
+  </ul>
+
+  <div class="stepper" data-steps="<b>Step 1 · The root.</b> document is the entry point. Every DOM operation starts here.|<b>Step 2 · First child.</b> html is the child of document and the parent of everything below.|<b>Step 3 · Siblings.</b> head and body share the same parent (html), so they are siblings.|<b>Step 4 · Deeper levels.</b> h1 and p are children of body, and siblings of each other.|<b>Step 5 · Relationships.</b> Parent, child, and sibling are just positions in the tree. Every node has at most one parent.">
+    <div class="stepper-head"><span class="badge accent">Interactive</span><span class="step-count">Step 1 / 5</span></div>
+    <svg viewBox="0 0 760 270" role="img" aria-label="DOM tree">
+      <defs><marker id="ah2" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#0E0F14"/></marker></defs>
+      <path class="e" data-s="2" d="M380 46 V70" marker-end="url(#ah2)"/>
+      <path class="e" data-s="3" d="M380 106 C380 122 245 118 245 133" marker-end="url(#ah2)"/>
+      <path class="e" data-s="3" d="M380 106 C380 122 515 118 515 133" marker-end="url(#ah2)"/>
+      <path class="e" data-s="4" d="M515 171 C515 190 425 186 425 203" marker-end="url(#ah2)"/>
+      <path class="e" data-s="4" d="M515 171 C515 190 605 186 605 203" marker-end="url(#ah2)"/>
+      <g class="n o" data-s="1"><rect class="box" x="315" y="10" width="130" height="36"/><text x="380" y="28">document</text></g>
+      <g class="n h" data-s="2"><rect class="box" x="325" y="70" width="110" height="36"/><text x="380" y="88">&lt;html&gt;</text></g>
+      <g class="n" data-s="3"><rect class="box" x="190" y="135" width="110" height="36"/><text x="245" y="153">&lt;head&gt;</text></g>
+      <g class="n" data-s="3"><rect class="box" x="460" y="135" width="110" height="36"/><text x="515" y="153">&lt;body&gt;</text></g>
+      <g class="n c" data-s="4"><rect class="box" x="370" y="205" width="110" height="36"/><text x="425" y="223">&lt;h1&gt;</text></g>
+      <g class="n c" data-s="4"><rect class="box" x="550" y="205" width="110" height="36"/><text x="605" y="223">&lt;p&gt;</text></g>
+      <text class="n ann" data-s="5" x="150" y="100">html = parent of head, body</text>
+      <text class="n ann" data-s="5" x="380" y="195">siblings</text>
+      <text class="n ann" data-s="5" x="150" y="224">h1 + p = siblings, children of body</text>
+    </svg>
+    <div class="step-caption"></div>
+    <div class="stepper-ctrl"><button data-dir="-1">← Back</button><button data-dir="1">Forward →</button></div>
+  </div>
+
+  <div class="code">
+    <div class="code-head"><span class="lang">HTML</span><button class="copy">Copy</button></div>
+    <pre><code data-lang="html">&lt;html&gt;
+  &lt;head&gt;&lt;title&gt;Page&lt;/title&gt;&lt;/head&gt;
+  &lt;body&gt;
+    &lt;h1&gt;Hello&lt;/h1&gt;
+    &lt;p&gt;This is the DOM&lt;/p&gt;
+  &lt;/body&gt;
+&lt;/html&gt;</code></pre>
+  </div>
+
+  <div class="code">
+    <div class="code-head"><span class="lang">JavaScript</span><button class="copy">Copy</button></div>
+    <pre><code data-lang="js">// walking the tree from the root
+console.log(document.body.parentNode);          // &lt;html&gt;
+console.log(document.body.children);            // h1, p
+console.log(document.querySelector("h1").nextElementSibling); // &lt;p&gt;</code></pre>
+  </div>
+</section>
+
+<!-- ========== 03 SELECTING ========== -->
+<section id="selecting" class="reveal">
+  <div class="sec-head"><div class="sec-num">03</div><h2>Selecting Elements</h2></div>
+  <p>To change an element you must first get a reference to it. There are five common methods.</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Method</th><th>Returns</th></tr></thead>
+      <tbody>
+        <tr><td><code>getElementById()</code></td><td>Single element</td></tr>
+        <tr><td><code>getElementsByClassName()</code></td><td>HTMLCollection</td></tr>
+        <tr><td><code>getElementsByTagName()</code></td><td>HTMLCollection</td></tr>
+        <tr><td><code>querySelector()</code></td><td>First match</td></tr>
+        <tr><td><code>querySelectorAll()</code></td><td>NodeList (all matches)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="note-box">
+    <span class="label">Modern preference</span>
+    <p>Prefer <code class="i">querySelector</code> and <code class="i">querySelectorAll</code>. They accept any CSS selector (<code class="i">#id</code>, <code class="i">.class</code>, <code class="i">ul &gt; li</code>), so one pair of methods covers everything.</p>
+  </div>
+
+  <div class="code">
+    <div class="code-head"><span class="lang">JavaScript</span><button class="copy">Copy</button></div>
+    <pre><code data-lang="js">const title = document.getElementById("title");          // one element
+const cards = document.getElementsByClassName("card");   // HTMLCollection
+const items = document.getElementsByTagName("li");       // HTMLCollection
+
+const first = document.querySelector(".card");           // first match
+const all   = document.querySelectorAll("ul &gt; li");      // NodeList
+
+console.log(first.textContent);</code></pre>
+  </div>
+
+  <div class="warning-box">
+    <span class="label">Watch out</span>
+    <p>If nothing matches, <code class="i">getElementById</code> and <code class="i">querySelector</code> return <code class="i">null</code>. Calling a property on <code class="i">null</code> throws a TypeError, so check before you use the result.</p>
+  </div>
+</section>
+
+<!-- ========== 04 LISTS ========== -->
+<section id="lists" class="reveal">
+  <div class="sec-head"><div class="sec-num">04</div><h2>NodeList vs HTMLCollection</h2></div>
+  <p>Both look like arrays, but neither is one. They behave differently in two important ways: whether they stay in sync with the page, and what methods they offer.</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Feature</th><th>NodeList</th><th>HTMLCollection</th></tr></thead>
+      <tbody>
+        <tr><td>Returned by</td><td><code>querySelectorAll()</code></td><td><code>getElementsByClassName()</code>, <code>getElementsByTagName()</code>, <code>.children</code></td></tr>
+        <tr><td>Live?</td><td>Static for <code>querySelectorAll()</code></td><td>Live: updates when the DOM changes</td></tr>
+        <tr><td><code>forEach()</code></td><td><span class="badge green">Yes</span></td><td><span class="badge red">No</span></td></tr>
+        <tr><td>Index access <code>[0]</code></td><td><span class="badge green">Yes</span></td><td><span class="badge green">Yes</span></td></tr>
+        <tr><td>Can contain</td><td>Any node type (for <code>childNodes</code>)</td><td>Elements only</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="code">
+    <div class="code-head"><span class="lang">JavaScript</span><button class="copy">Copy</button></div>
+    <pre><code data-lang="js">const nodeList = document.querySelectorAll(".card");
+nodeList.forEach(card =&gt; card.classList.add("seen"));   // works
+
+const coll = document.getElementsByClassName("card");
+// coll.forEach(...)  -&gt; TypeError: not a function
+
+Array.from(coll).forEach(card =&gt; card.classList.add("seen"));
+[...coll].map(card =&gt; card.id);                          // spread works too</code></pre>
+  </div>
+
+  <div class="warning-box">
+    <span class="label">Live collections</span>
+    <p>If you loop over a live HTMLCollection while adding or removing matching elements, the collection changes under you and the loop can skip items. Convert it with <code class="i">Array.from()</code> first when you plan to modify the DOM inside the loop.</p>
+  </div>
+</section>
+
+<!-- ========== 05 TEXT ========== -->
+<section id="text" class="reveal">
+  <div class="sec-head"><div class="sec-num">05</div><h2>Changing Text<br>in the DOM</h2></div>
+  <p>Three properties read and write an element's content. They look similar but behave differently.</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Property</th><th>What it does</th><th>Security</th></tr></thead>
+      <tbody>
+        <tr><td><code>innerHTML</code></td><td>Reads/writes HTML (understands tags)</td><td><span class="badge red">Risky (XSS)</span></td></tr>
+        <tr><td><code>textContent</code></td><td>Reads/writes plain text only</td><td><span class="badge green">Safer</span></td></tr>
+        <tr><td><code>innerText</code></td><td>Plain text, aware of CSS visibility</td><td><span class="badge green">Safe</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="table-wrap flag-table">
+    <table>
+      <thead><tr><th>Behavior</th><th>innerHTML</th><th>textContent</th><th>innerText</th></tr></thead>
+      <tbody>
+        <tr><td>Parses HTML tags</td><td><span class="flag yes">✓</span></td><td><span class="flag no">✕</span></td><td><span class="flag no">✕</span></td></tr>
+        <tr><td>Safe for user input</td><td><span class="flag no">✕</span></td><td><span class="flag yes">✓</span></td><td><span class="flag yes">✓</span></td></tr>
+        <tr><td>Respects CSS (skips hidden text)</td><td><span class="flag no">✕</span></td><td><span class="flag no">✕</span></td><td><span class="flag yes">✓</span></td></tr>
+        <tr><td>Returns text of hidden elements</td><td><span class="flag yes">✓</span></td><td><span class="flag yes">✓</span></td><td><span class="flag no">✕</span></td></tr>
+        <tr><td>Triggers layout (slower)</td><td><span class="flag no">✕</span></td><td><span class="flag no">✕</span></td><td><span class="flag warn">!</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="code">
+    <div class="code-head"><span class="lang">JavaScript</span><button class="copy">Copy</button></div>
+    <pre><code data-lang="js">const box = document.querySelector("#box");
+
+box.textContent = "Hello &lt;b&gt;World&lt;/b&gt;";   // shows the tags literally
+box.innerHTML   = "Hello &lt;b&gt;World&lt;/b&gt;";   // World appears bold
+box.innerText   = "Hello World";              // plain text, CSS-aware
+
+console.log(box.textContent);   // read text</code></pre>
+  </div>
+
+  <div class="demo">
+    <div class="demo-title">Try it · same string, three properties</div>
+    <div class="demo-target" id="textDemo">Hello DOM</div>
+    <div class="demo-btns">
+      <button class="btn" data-set="textContent">textContent</button>
+      <button class="btn" data-set="innerHTML">innerHTML</button>
+      <button class="btn" data-set="innerText">innerText</button>
+    </div>
+    <div class="demo-state">Writing <b>Hello &lt;b&gt;bold&lt;/b&gt; &lt;i&gt;italic&lt;/i&gt;</b> using: <b id="textWhich">(click a button)</b></div>
+  </div>
+
+  <div class="warning-box danger">
+    <span class="label">XSS warning</span>
+    <p>Never put user-supplied text into <code class="i">innerHTML</code>. A string like <code class="i">&lt;img src=x onerror=alert(1)&gt;</code> will run as code. Use <code class="i">textContent</code> unless you really need HTML.</p>
+  </div>
+</section>
+
+<!-- ========== 06 STYLE ========== -->
+<section id="style" class="reveal">
+  <div class="sec-head"><div class="sec-num">06</div><h2>Changing Styles<br>with the DOM</h2></div>
+  <p>Every element has a <code class="i">style</code> object that maps to its inline <code class="i">style=""</code> attribute.</p>
+
+  <div class="code">
+    <div class="code-head"><span class="lang">JavaScript</span><button class="copy">Copy</button></div>
+    <pre><code data-lang="js">const el = document.querySelector("h1");
+
+el.style.color = "red";
+el.style.backgroundColor = "#C84B1F";   // camelCase, not background-color
+el.style.fontSize = "32px";             // values are strings with units
+
+el.style.setProperty("--theme", "tomato");   // CSS variables
+el.style.color = "";                         // empty string removes it
+
+console.log(getComputedStyle(el).color);     // final computed value</code></pre>
+  </div>
+
+  <div class="demo">
+    <div class="demo-title">Try it · element.style</div>
+    <div class="demo-target" id="styleDemo">Style me with JavaScript</div>
+    <div class="demo-btns">
+      <button class="btn" id="sColor">style.color = "red"</button>
+      <button class="btn" id="sBg">style.backgroundColor</button>
+      <button class="btn" id="sSize">style.fontSize = "40px"</button>
+      <button class="btn" id="sReset">reset</button>
+    </div>
+  </div>
+
+  <div class="note-box">
+    <span class="label">Remember</span>
+    <p>CSS properties with a hyphen become camelCase in JavaScript: <code class="i">background-color</code> → <code class="i">backgroundColor</code>. Also, <code class="i">element.style</code> only reads inline styles. To read a value that comes from a stylesheet, use <code class="i">getComputedStyle(element)</code>.</p>
+  </div>
+
+  <div class="warning-box">
+    <span class="label">Best practice</span>
+    <p>For more than one or two style changes, toggle a CSS class instead of setting many inline styles. It keeps styling in CSS and is easier to undo.</p>
+  </div>
+</section>
+
+<!-- ========== 07 CLASSLIST ========== -->
+<section id="classlist" class="reveal">
+  <div class="sec-head"><div class="sec-num">07</div><h2>classList</h2></div>
+  <p><code class="i">classList</code> is the clean way to work with an element's classes without touching the whole <code class="i">className</code> string.</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Method</th><th>What it does</th></tr></thead>
+      <tbody>
+        <tr><td><code>classList.add()</code></td><td>Adds one or more classes</td></tr>
+        <tr><td><code>classList.remove()</code></td><td>Removes a class</td></tr>
+        <tr><td><code>classList.toggle()</code></td><td>Adds if missing, removes if present. Great for dark mode, menus, modals</td></tr>
+        <tr><td><code>classList.contains()</code></td><td>Returns true or false: does the class exist?</td></tr>
+        <tr><td><code>classList.replace()</code></td><td>Swaps an old class for a new one</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="code">
+    <div class="code-head"><span class="lang">JavaScript</span><button class="copy">Copy</button></div>
+    <pre><code data-lang="js">const menu = document.querySelector(".menu");
+
+menu.classList.add("open");               // add
+menu.classList.add("big", "rounded");     // add several
+menu.classList.remove("open");            // remove
+menu.classList.toggle("dark");            // on, then off, then on...
+menu.classList.toggle("dark", true);      // force: only ever adds
+
+if (menu.classList.contains("dark")) {
+  console.log("dark mode is on");
+}
+
+menu.classList.replace("big", "small");   // returns true if it replaced</code></pre>
+  </div>
+
+  <div class="demo">
+    <div class="demo-title">Try it · live classList</div>
+    <div class="demo-target" id="clDemo">I am a div</div>
+    <div class="demo-btns">
+      <button class="btn" data-cl="add">add("highlight")</button>
+      <button class="btn" data-cl="remove">remove("highlight")</button>
+      <button class="btn" data-cl="toggle">toggle("dark")</button>
+      <button class="btn" data-cl="replace">replace("big", "highlight")</button>
+      <button class="btn" data-cl="contains">contains("highlight")</button>
+    </div>
+    <div class="demo-state">class = <b id="clState">"demo-target"</b> <span id="clMsg"></span></div>
+  </div>
+
+  <div class="note-box">
+    <span class="label">Spelling</span>
+    <p>The method is <code class="i">contains()</code> with an s, not <code class="i">contain()</code>. Writing <code class="i">classList.contain()</code> throws a TypeError.</p>
+  </div>
+</section>
+
+<!-- ========== 08 QUIZ ========== -->
+<section id="quiz" class="reveal">
+  <div class="sec-head"><div class="sec-num">08</div><h2>Check yourself</h2></div>
+
+  <div class="quiz" data-answer="2">
+    <p class="q"><small>Question 1</small>Which element does the render tree leave out?</p>
+    <button class="opt">One with <code>visibility: hidden</code></button>
+    <button class="opt">One with <code>opacity: 0</code></button>
+    <button class="opt">One with <code>display: none</code></button>
+    <div class="explain"><b>Correct.</b> display: none removes the element from the render tree. Hidden and transparent elements still take up space.</div>
+  </div>
+
+  <div class="quiz" data-answer="1">
+    <p class="q"><small>Question 2</small>What does <code>querySelectorAll()</code> return?</p>
+    <button class="opt">An HTMLCollection</button>
+    <button class="opt">A static NodeList</button>
+    <button class="opt">The first matching element</button>
+    <div class="explain"><b>Correct.</b> It returns a NodeList of all matches. It does not update when the DOM changes later, and it supports <code>forEach()</code>.</div>
+  </div>
+
+  <div class="quiz" data-answer="0">
+    <p class="q"><small>Question 3</small>Which property is safest for showing text typed by a user?</p>
+    <button class="opt"><code>textContent</code></button>
+    <button class="opt"><code>innerHTML</code></button>
+    <button class="opt">None of them are safe</button>
+    <div class="explain"><b>Correct.</b> textContent treats everything as plain text, so injected tags are shown, not executed.</div>
+  </div>
+
+  <div class="quiz" data-answer="1">
+    <p class="q"><small>Question 4</small>What does <code>classList.toggle("open")</code> do when "open" is already present?</p>
+    <button class="opt">Adds it a second time</button>
+    <button class="opt">Removes it</button>
+    <button class="opt">Throws an error</button>
+    <div class="explain"><b>Correct.</b> toggle adds the class if it is missing and removes it if it is present.</div>
+  </div>
+
+  <div class="score">
+    <span>Score</span><b id="scoreNum">0 / 4</b>
+    <button class="btn reset" id="quizReset">Reset</button>
+  </div>
+</section>
+
+<footer>DOM NOTES · JAVASCRIPT CLASS 02</footer>
+
+</div>
+</main>
+</div>
+
+<script>
+/* ============ SYNTAX HIGHLIGHT ============ */
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+var KW=/^(const|let|var|function|return|if|else|for|of|in|new|this|true|false|null|undefined|typeof|while|break|continue|class|async|await)$/;
+var GLOBALS=/^(document|window|console|Array|Math|JSON|Object)$/;
+
+function hlJS(src){
+  var re=/(\/\/[^\n]*|\/\*[\s\S]*?\*\/)|("(?:\\.|[^"\\\n])*"|'(?:\\.|[^'\\\n])*'|`(?:\\.|[^`\\])*`)|(\b\d+(?:\.\d+)?\b)|([A-Za-z_$][\w$]*)/g;
+  var out='',last=0,m;
+  while((m=re.exec(src))){
+    out+=esc(src.slice(last,m.index));
+    last=re.lastIndex;
+    if(m[1]) out+='<span class="tok-c">'+esc(m[1])+'</span>';
+    else if(m[2]) out+='<span class="tok-s">'+esc(m[2])+'</span>';
+    else if(m[3]) out+='<span class="tok-n">'+m[3]+'</span>';
+    else{
+      var w=m[4], next=src.slice(last).match(/^\s*\(/);
+      if(KW.test(w)) out+='<span class="tok-k">'+w+'</span>';
+      else if(GLOBALS.test(w)) out+='<span class="tok-p">'+w+'</span>';
+      else if(next) out+='<span class="tok-f">'+w+'</span>';
+      else out+=w;
+    }
+  }
+  return out+esc(src.slice(last));
+}
+
+function hlHTML(src){
+  var re=/<!--[\s\S]*?-->|<\/?[A-Za-z][\w-]*(?:\s[^<>]*?)?\/?>/g;
+  var out='',last=0,m;
+  while((m=re.exec(src))){
+    out+=esc(src.slice(last,m.index));
+    last=re.lastIndex;
+    var t=m[0];
+    if(t.indexOf('<!--')===0){ out+='<span class="tok-c">'+esc(t)+'</span>'; continue; }
+    var p=t.match(/^(<\/?)([\w-]+)([\s\S]*?)(\/?>)$/);
+    var attrs=p[3].replace(/([\w:-]+)(?:(=)("[^"]*"|'[^']*'))?/g,function(_,n,eq,v){
+      return '<span class="tok-a">'+n+'</span>'+(eq?esc(eq)+'<span class="tok-s">'+esc(v)+'</span>':'');
+    });
+    out+=esc(p[1])+'<span class="tok-t">'+p[2]+'</span>'+attrs+esc(p[4]);
+  }
+  return out+esc(src.slice(last));
+}
+
+function hlCSS(src){
+  var re=/(\/\*[\s\S]*?\*\/)|("[^"]*"|'[^']*')|([\w-]+)(?=\s*:)|(#[0-9a-fA-F]{3,8}\b|\b\d+(?:\.\d+)?(?:px|rem|em|%|s|vh|vw)?)/g;
+  var out='',last=0,m;
+  while((m=re.exec(src))){
+    out+=esc(src.slice(last,m.index)); last=re.lastIndex;
+    if(m[1]) out+='<span class="tok-c">'+esc(m[1])+'</span>';
+    else if(m[2]) out+='<span class="tok-s">'+esc(m[2])+'</span>';
+    else if(m[3]) out+='<span class="tok-p">'+m[3]+'</span>';
+    else out+='<span class="tok-n">'+m[4]+'</span>';
+  }
+  return out+esc(src.slice(last));
+}
+
+document.querySelectorAll('pre code[data-lang]').forEach(function(c){
+  var raw=c.textContent, lang=c.dataset.lang;
+  c.parentNode.dataset.raw=raw;
+  c.innerHTML = lang==='html'?hlHTML(raw) : lang==='css'?hlCSS(raw) : hlJS(raw);
+});
+
+/* ============ COPY BUTTONS ============ */
+function copyText(text){
+  if(navigator.clipboard && window.isSecureContext){ return navigator.clipboard.writeText(text); }
+  return new Promise(function(res,rej){
+    var ta=document.createElement('textarea'); ta.value=text; ta.style.position='fixed'; ta.style.opacity='0';
+    document.body.appendChild(ta); ta.select();
+    try{ document.execCommand('copy')?res():rej(); }catch(e){ rej(e); }
+    document.body.removeChild(ta);
+  });
+}
+document.querySelectorAll('.copy').forEach(function(btn){
+  btn.addEventListener('click',function(){
+    var pre=btn.closest('.code').querySelector('pre');
+    copyText(pre.dataset.raw||pre.textContent).then(function(){
+      btn.textContent='Copied!'; btn.classList.add('done');
+      setTimeout(function(){ btn.textContent='Copy'; btn.classList.remove('done'); },1600);
+    }).catch(function(){ btn.textContent='Press Ctrl+C'; setTimeout(function(){ btn.textContent='Copy'; },1600); });
+  });
+});
+
+/* ============ STEPPERS ============ */
+document.querySelectorAll('.stepper').forEach(function(st){
+  var steps=st.dataset.steps.split('|');
+  var cur=1, total=steps.length;
+  var cap=st.querySelector('.step-caption'), count=st.querySelector('.step-count');
+  var back=st.querySelector('[data-dir="-1"]'), fwd=st.querySelector('[data-dir="1"]');
+  var els=st.querySelectorAll('[data-s]');
+  function render(){
+    els.forEach(function(el){
+      var s=+el.dataset.s;
+      el.classList.toggle('show',s<=cur);
+      el.classList.toggle('now',s===cur);
+    });
+    cap.innerHTML=steps[cur-1];
+    count.textContent='Step '+cur+' / '+total;
+    back.disabled=cur===1; fwd.disabled=cur===total;
+  }
+  back.addEventListener('click',function(){ if(cur>1){cur--;render();} });
+  fwd.addEventListener('click',function(){ if(cur<total){cur++;render();} });
+  render();
+});
+
+/* ============ SCROLL-SPY + PROGRESS ============ */
+var sections=[].slice.call(document.querySelectorAll('main section[id]'));
+var links=[].slice.call(document.querySelectorAll('#nav a'));
+var bar=document.getElementById('bar'), pct=document.getElementById('pct');
+function spy(){
+  var y=window.scrollY+160, current=sections[0].id;
+  sections.forEach(function(s){ if(s.offsetTop<=y) current=s.id; });
+  if(window.innerHeight+window.scrollY>=document.body.scrollHeight-4) current=sections[sections.length-1].id;
+  links.forEach(function(a){ a.classList.toggle('active',a.getAttribute('href')==='#'+current); });
+  var max=document.body.scrollHeight-window.innerHeight;
+  var p=max>0?Math.min(100,Math.round(window.scrollY/max*100)):0;
+  bar.style.width=p+'%'; pct.textContent=p+'% read';
+}
+window.addEventListener('scroll',spy,{passive:true});
+window.addEventListener('resize',spy);
+spy();
+
+/* ============ REVEAL ON SCROLL ============ */
+if('IntersectionObserver' in window){
+  var io=new IntersectionObserver(function(entries){
+    entries.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
+  },{threshold:0.06});
+  document.querySelectorAll('.reveal').forEach(function(el){ io.observe(el); });
+}else{
+  document.querySelectorAll('.reveal').forEach(function(el){ el.classList.add('in'); });
+}
+
+/* ============ LIVE DEMOS ============ */
+// text demo
+var textDemo=document.getElementById('textDemo'), textWhich=document.getElementById('textWhich');
+document.querySelectorAll('[data-set]').forEach(function(b){
+  b.addEventListener('click',function(){
+    var prop=b.dataset.set;
+    textDemo[prop]='Hello <b>bold</b> <i>italic</i>';
+    textWhich.textContent=prop;
+  });
+});
+
+// style demo
+var sd=document.getElementById('styleDemo');
+document.getElementById('sColor').onclick=function(){ sd.style.color='red'; };
+document.getElementById('sBg').onclick=function(){ sd.style.backgroundColor='#C84B1F'; sd.style.color='#fff'; };
+document.getElementById('sSize').onclick=function(){ sd.style.fontSize='40px'; };
+document.getElementById('sReset').onclick=function(){ sd.removeAttribute('style'); };
+
+// classList demo
+var cd=document.getElementById('clDemo'), cs=document.getElementById('clState'), cm=document.getElementById('clMsg');
+function showCl(msg){ cs.textContent='"'+cd.className+'"'; cm.textContent=msg||''; }
+document.querySelectorAll('[data-cl]').forEach(function(b){
+  b.addEventListener('click',function(){
+    var a=b.dataset.cl, msg='';
+    if(a==='add') cd.classList.add('highlight');
+    if(a==='remove') cd.classList.remove('highlight');
+    if(a==='toggle') cd.classList.toggle('dark');
+    if(a==='replace'){
+      if(!cd.classList.contains('big')) cd.classList.add('big');
+      msg='→ replaced: '+cd.classList.replace('big','highlight');
+    }
+    if(a==='contains') msg='→ '+cd.classList.contains('highlight');
+    showCl(msg);
+  });
+});
+
+/* ============ QUIZ ============ */
+var quizzes=[].slice.call(document.querySelectorAll('.quiz'));
+var scoreNum=document.getElementById('scoreNum');
+function updateScore(){
+  var ok=document.querySelectorAll('.quiz.scored-correct').length;
+  scoreNum.textContent=ok+' / '+quizzes.length;
+}
+quizzes.forEach(function(q){
+  var opts=[].slice.call(q.querySelectorAll('.opt')), ans=+q.dataset.answer;
+  opts.forEach(function(o,i){
+    o.addEventListener('click',function(){
+      opts.forEach(function(x){ x.disabled=true; });
+      if(i===ans){ o.classList.add('correct'); q.classList.add('scored-correct'); }
+      else{ o.classList.add('wrong'); opts[ans].classList.add('correct'); }
+      q.querySelector('.explain').classList.add('show');
+      updateScore();
+    });
+  });
+});
+document.getElementById('quizReset').addEventListener('click',function(){
+  quizzes.forEach(function(q){
+    q.classList.remove('scored-correct');
+    q.querySelectorAll('.opt').forEach(function(o){ o.disabled=false; o.classList.remove('correct','wrong'); });
+    q.querySelector('.explain').classList.remove('show');
+  });
+  updateScore();
+});
+</script>
+</body>
+</html>
