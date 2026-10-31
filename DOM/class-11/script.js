@@ -2,8 +2,11 @@ const input = document.querySelector("input");
 const submitBtn = document.querySelector(".submitBtn");
 const todos = document.querySelector(".todos");
 
+
 submitBtn.addEventListener("click", () => {
     const value = input.value;
+
+    if(value.trim() =="") return;
 
     const task = document.createElement("div");
 
@@ -18,6 +21,6 @@ submitBtn.addEventListener("click", () => {
     `
 
     todos.append(task);
-
+    
 
 })
