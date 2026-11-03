@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DOM Notes | Home</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <canvas id="sim" aria-hidden="true"></canvas>
+
+    <main class="page">
+
+        <header class="top">
+            <span class="logo">&lt;dom-notes&gt;</span>
+            <button id="themeBtn" class="theme-btn" type="button">Switch to dark</button>
+        </header>
+
+        <section class="hero">
+            <h1 id="title"><span class="split">DOM A–Z</span><br><span class="split mark">Everything You Need to Know</span></h1>
+            <p class="lead">My JavaScript DOM notes, class by class. Pick a page and start reading.</p>
+            <p class="live" aria-live="polite">
+                <span class="live-label">Inspecting:</span>
+                <code id="inspector">nothing yet</code>
+            </p>
+        </section>
+
+        <nav class="notes" aria-label="Notes pages">
+
+            <a class="note" href="dom-notes.html" data-node="a.note#basics" style="--i:0">
+                <span class="note-tag">Start here</span>
+                <h2>DOM Notes ( Class 1 )</h2>
+                <p>What the DOM is, and how to select and change elements.</p>
+                <code class="snippet" data-code="document.querySelector()">document.querySelector()</code>
+            </a>
+
+            <a class="note" href="dom-class-3-notes.html" data-node="a.note#class-3" style="--i:1">
+                <span class="note-tag">Class 3</span>
+                <h2>Class 2 &amp; 3 Notes</h2>
+                <p>Styles, classes and attributes. Changing how things look.</p>
+                <code class="snippet" data-code="element.classList.toggle()">element.classList.toggle()</code>
+            </a>
+
+            <a class="note" href="DOM_Events(Class-4).html" data-node="a.note#class-4" style="--i:2">
+                <span class="note-tag">Class 4</span>
+                <h2>DOM Events - Class 4</h2>
+                <p>Clicks, inputs and keys. Make the page react to people.</p>
+                <code class="snippet" data-code="element.addEventListener()">element.addEventListener()</code>
+            </a>
+
+        </nav>
+
+        <footer class="foot">
+            <p>Built with plain HTML, CSS and JavaScript.</p>
+            <p>Click empty space to <code>appendChild()</code>, drag a node, or click one to bubble an event · nodes: <code id="count">0</code></p>
+        </footer>
+
+    </main>
+
+    <script>
+        const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+        // 1. Hero: split text into words and letters so each letter can drop in
+        let letter = 0;
+        document.querySelectorAll(".split").forEach(function (el) {
+            const words = el.textContent.split(" ");
+            el.textContent = "";
+            words.forEach(function (w, i) {
+                const word = document.createElement("span");
+                word.className = "word";
+                word.setAttribute("aria-hidden", "true");
+                for (const c of w) {
+                    const ch = document.createElement("span");
+                    ch.className = "ch";
+                    ch.style.setProperty("--d", letter++);
+                    ch.textContent = c;
+                    word.appendChild(ch);
+                }
+                el.appendChild(word);
+                if (i < words.length - 1) el.appendChild(document.createTextNode(" "));
+            });
+            el.setAttribute("aria-label", words.join(" "));
+        });
+
+        // 2. Inspector + 3D tilt + typing snippet on each card
+        const inspector = document.getElementById("inspector");
+        const notes = document.querySelectorAll(".note");
+        let typer = null;
+
+        function typeSnippet(el, text) {
+            clearInterval(typer);
+            if (reduced) return;
+            el.classList.add("typing");
+            el.textContent = "";
+            let i = 0;
+            typer = setInterval(function () {
+                el.textContent = text.slice(0, ++i);
+                if (i >= text.length) {
+                    clearInterval(typer);
+                    el.classList.remove("typing");
+                }
+            }, 28);
+        }
+
+        notes.forEach(function (note) {
+            const snippet = note.querySelector(".snippet");
+
+            note.addEventListener("mouseenter", function () {
+                const r = note.getBoundingClientRect();
+                inspector.textContent =
+                    note.dataset.node + "  " + Math.round(r.width) + "×" + Math.round(r.height);
+                typeSnippet(snippet, snippet.dataset.code);
+            });
+
+            note.addEventListener("mousemove", function (e) {
+                if (reduced) return;
+                const r = note.getBoundingClientRect();
+                const x = (e.clientX - r.left) / r.width;
+                const y = (e.clientY - r.top) / r.height;
+                note.style.setProperty("--mx", x * 100 + "%");
+                note.style.setProperty("--my", y * 100 + "%");
+                note.style.setProperty("--ry", (x - 0.5) * 10 + "deg");
+                note.style.setProperty("--rx", (0.5 - y) * 10 + "deg");
+            });
+
+            note.addEventListener("mouseleave", function () {
+                inspector.textContent = "nothing yet";
+                note.style.setProperty("--rx", "0deg");
+                note.style.setProperty("--ry", "0deg");
+                clearInterval(typer);
+                snippet.classList.remove("typing");
+                snippet.textContent = snippet.dataset.code;
+            });
+        });
+
+        // 3. Light / dark theme with classList.toggle
+        const themeBtn = document.getElementById("themeBtn");
+
+        themeBtn.addEventListener("click", function () {
+            function flip() {
+                const isDark = document.body.classList.toggle("dark");
+                themeBtn.textContent = isDark ? "Switch to light" : "Switch to dark";
+                readColors();
+                if (reduced) draw();
+            }
+            if (!document.startViewTransition || reduced) return flip();
+            const b = themeBtn.getBoundingClientRect();
+            const x = b.left + b.width / 2, y = b.top + b.height / 2;
+            const r = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
+            document.startViewTransition(flip).ready.then(function () {
+                document.documentElement.animate(
+                    { clipPath: ["circle(0 at " + x + "px " + y + "px)", "circle(" + r + "px at " + x + "px " + y + "px)"] },
+                    { duration: 700, easing: "ease-in-out", pseudoElement: "::view-transition-new(root)" }
+                );
+            });
+        });
+
+        // 4. A living DOM tree: nodes repel, parents pull children with springs,
+        //    the mouse pushes them away, and a click appends a new child.
+        const cv = document.getElementById("sim");
+        const ctx = cv.getContext("2d");
+        const countEl = document.getElementById("count");
+        const TAGS = ["div", "ul", "li", "a", "p", "span", "h2", "img", "nav", "section", "button", "input", "code", "main", "form"];
+        const MAX = 60;
+        let W, H, colors;
+        const mouse = { x: -999, y: -999 };
+        const nodes = [];
+
+        function readColors() {
+            const s = getComputedStyle(document.body);
+            colors = {
+                blue: s.getPropertyValue("--blue").trim(),
+                mark: s.getPropertyValue("--mark").trim(),
+                card: s.getPropertyValue("--card").trim(),
+                muted: s.getPropertyValue("--muted").trim()
+            };
+        }
+
+        function resize() {
+            const dpr = Math.min(window.devicePixelRatio || 1, 2);
+            W = innerWidth;
+            H = innerHeight;
+            cv.width = W * dpr;
+            cv.height = H * dpr;
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        }
+
+        function addNode(tag, parent, x, y) {
+            const n = {
+                tag: tag, parent: parent,
+                x: x !== undefined ? x : W / 2 + (Math.random() - 0.5) * 120,
+                y: y !== undefined ? y : H / 2 + (Math.random() - 0.5) * 120,
+                vx: 0, vy: 0, glow: 1, edge: 0, w: 60
+            };
+            nodes.push(n);
+            countEl.textContent = nodes.length;
+            return n;
+        }
+
+        // starting tree: html > head, body > a few random levels
+        const root = addNode("html", null);
+        addNode("head", root);
+        const body = addNode("body", root);
+        for (let i = 0; i < 4; i++) {
+            const child = addNode(TAGS[i], body);
+            for (let j = 0; j < 2; j++) addNode(TAGS[(i * 2 + j + 4) % TAGS.length], child);
+        }
+
+        function removeOldestLeaf() {
+            for (let i = 1; i < nodes.length; i++) {
+                const n = nodes[i];
+                if (!nodes.some(function (m) { return m.parent === n; })) {
+                    nodes.splice(i, 1);
+                    return;
+                }
+            }
+        }
+
+        let drag = null, moved = false, downX = 0, downY = 0;
+
+        function hit(x, y) {
+            for (let i = nodes.length - 1; i >= 0; i--) {
+                const n = nodes[i];
+                if (Math.abs(n.x - x) < n.w / 2 && Math.abs(n.y - y) < 12) return n;
+            }
+            return null;
+        }
+
+        // a click on a node fires a pulse up through its ancestors, like event bubbling
+        function bubble(n) {
+            const path = [];
+            for (let p = n; p; p = p.parent) path.push(p);
+            path.forEach(function (p, i) {
+                setTimeout(function () { p.glow = 1.4; p.edge = 1; }, i * 170);
+            });
+            inspector.textContent = "click bubbled: " + path.map(function (p) { return p.tag; }).join(" → ");
+            clearTimeout(bubble.t);
+            bubble.t = setTimeout(function () { inspector.textContent = "nothing yet"; }, 3500);
+        }
+
+        addEventListener("pointerdown", function (e) {
+            if (e.target.closest("a, button")) return;
+            const n = hit(e.clientX, e.clientY);
+            downX = e.clientX; downY = e.clientY; moved = false;
+            if (n) {
+                drag = n;
+                document.body.classList.add("grabbing");
+                return;
+            }
+            if (nodes.length >= MAX) removeOldestLeaf();
+            let near = root, best = Infinity;
+            nodes.forEach(function (m) {
+                const d = (m.x - e.clientX) ** 2 + (m.y - e.clientY) ** 2;
+                if (d < best) { best = d; near = m; }
+            });
+            addNode(TAGS[Math.floor(Math.random() * TAGS.length)], near, e.clientX, e.clientY);
+        });
+
+        addEventListener("pointermove", function (e) {
+            if (drag) {
+                drag.x = e.clientX; drag.y = e.clientY;
+                if (Math.hypot(e.clientX - downX, e.clientY - downY) > 4) moved = true;
+            } else if (!e.target.closest("a, button")) {
+                document.body.classList.toggle("grab", !!hit(e.clientX, e.clientY));
+            }
+        });
+
+        function release() {
+            if (drag && !moved) bubble(drag);
+            drag = null;
+            document.body.classList.remove("grabbing");
+        }
+        addEventListener("pointerup", release);
+        addEventListener("pointercancel", release);
+
+        addEventListener("mousemove", function (e) { mouse.x = e.clientX; mouse.y = e.clientY; });
+        addEventListener("mouseout", function () { mouse.x = mouse.y = -999; });
+        addEventListener("resize", resize);
+
+        function step() {
+            for (let i = 0; i < nodes.length; i++) {
+                const a = nodes[i];
+                // repulsion between every pair
+                for (let j = i + 1; j < nodes.length; j++) {
+                    const b = nodes[j];
+                    let dx = a.x - b.x, dy = a.y - b.y;
+                    const d2 = dx * dx + dy * dy + 40;
+                    const f = Math.min(3200 / d2, 2);
+                    const d = Math.sqrt(d2);
+                    dx = (dx / d) * f; dy = (dy / d) * f;
+                    a.vx += dx; a.vy += dy; b.vx -= dx; b.vy -= dy;
+                }
+                // spring to parent
+                if (a.parent) {
+                    const p = a.parent;
+                    const dx = p.x - a.x, dy = p.y - a.y;
+                    const d = Math.sqrt(dx * dx + dy * dy) || 1;
+                    const k = (d - 95) * 0.02;
+                    a.vx += (dx / d) * k; a.vy += (dy / d) * k;
+                    p.vx -= (dx / d) * k * 0.5; p.vy -= (dy / d) * k * 0.5;
+                }
+                // soft pull to the middle so the tree stays on screen
+                a.vx += (W / 2 - a.x) * 0.0007;
+                a.vy += (H / 2 - a.y) * 0.0007;
+                // mouse pushes nodes away
+                const mx = a.x - mouse.x, my = a.y - mouse.y;
+                const md = Math.sqrt(mx * mx + my * my);
+                if (md < 150 && md > 0) {
+                    const f = (150 - md) / 150;
+                    a.vx += (mx / md) * f * 2.2;
+                    a.vy += (my / md) * f * 2.2;
+                }
+            }
+            nodes.forEach(function (n) {
+                if (n === drag) { n.vx = n.vy = 0; return; }
+                n.vx *= 0.88; n.vy *= 0.88;
+                n.x += n.vx; n.y += n.vy;
+                n.x = Math.max(30, Math.min(W - 30, n.x));
+                n.y = Math.max(20, Math.min(H - 20, n.y));
+                n.glow *= 0.96; n.edge *= 0.95;
+            });
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, W, H);
+            nodes.forEach(function (n) {
+                if (!n.parent) return;
+                const hot = n.edge > 0.1;
+                ctx.lineWidth = 1.5 + n.edge * 3;
+                ctx.globalAlpha = hot ? 0.95 : 0.35;
+                ctx.strokeStyle = hot ? colors.mark : colors.blue;
+                ctx.beginPath();
+                ctx.moveTo(n.parent.x, n.parent.y);
+                ctx.lineTo(n.x, n.y);
+                ctx.stroke();
+            });
+            ctx.font = "600 12px 'JetBrains Mono', monospace";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            nodes.forEach(function (n) {
+                const label = "<" + n.tag + ">";
+                const w = ctx.measureText(label).width + 16;
+                n.w = w;
+                const near = Math.hypot(n.x - mouse.x, n.y - mouse.y) < 150;
+                ctx.globalAlpha = 0.55 + n.glow * 0.45;
+                ctx.fillStyle = near || n.glow > 0.3 ? colors.mark : colors.card;
+                ctx.strokeStyle = colors.blue;
+                ctx.beginPath();
+                ctx.roundRect(n.x - w / 2, n.y - 11, w, 22, 6);
+                ctx.fill();
+                ctx.stroke();
+                ctx.fillStyle = near || n.glow > 0.3 ? "#151a2b" : colors.blue;
+                ctx.fillText(label, n.x, n.y + 1);
+            });
+            ctx.globalAlpha = 1;
+        }
+
+        const chars = Array.from(document.querySelectorAll(".ch")).map(function (el) {
+            return { el: el, ox: 0, oy: 0 };
+        });
+        const t0 = performance.now();
+
+        function scatter() {
+            if (performance.now() - t0 < 2300) return;
+            const pos = chars.map(function (c) {
+                const r = c.el.getBoundingClientRect();
+                return [r.left + r.width / 2 - c.ox, r.top + r.height / 2 - c.oy];
+            });
+            chars.forEach(function (c, i) {
+                const dx = pos[i][0] - mouse.x, dy = pos[i][1] - mouse.y;
+                const d = Math.hypot(dx, dy) || 1;
+                const f = d < 120 ? ((120 - d) / 120) * 34 : 0;
+                c.ox += ((dx / d) * f - c.ox) * 0.18;
+                c.oy += ((dy / d) * f - c.oy) * 0.18;
+                c.el.style.translate = c.ox.toFixed(1) + "px " + c.oy.toFixed(1) + "px";
+            });
+        }
+
+        function loop() {
+            step();
+            draw();
+            scatter();
+            requestAnimationFrame(loop);
+        }
+
+        resize();
+        readColors();
+        if (reduced) {
+            for (let i = 0; i < 300; i++) step();
+            draw();
+        } else {
+            loop();
+        }
+    </script>
+</body>
+</html>
